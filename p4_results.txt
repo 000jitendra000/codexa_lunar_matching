@@ -1,0 +1,366 @@
+﻿python : 2026-09-07 
+19:38:01,669 - INFO - 
+Starting Environment 
+Verification...
+At line:1 char:1
++ python verify_env.py 
+2>&1 | Out-File -FilePath 
+p4_results.txt -Encodi ...
++ 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (2  
+  026-09-07 19:3...Veri   
+ fication...:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+2026-09-07 19:38:01,669 - 
+INFO - Python Version: 
+3.13.11
+2026-09-07 19:38:01,672 - 
+INFO - Loaded 
+Configuration for: 
+Cross-Sensor Lunar 
+Location Matching v0.1.0
+2026-09-07 19:38:03,284 - 
+INFO - Successfully 
+imported torch (Version: 
+2.14.0+cpu)
+2026-09-07 19:38:04,543 - 
+INFO - Successfully 
+imported torchvision 
+(Version: 0.29.0+cpu)
+2026-09-07 19:38:04,566 - 
+INFO - Successfully 
+imported cv2 (Version: 
+5.0.0)
+2026-09-07 19:38:04,567 - 
+INFO - Successfully 
+imported numpy (Version: 
+2.4.1)
+2026-09-07 19:38:04,574 - 
+INFO - Successfully 
+imported scipy (Version: 
+1.17.0)
+C:\Users\RONANKI JITENDRA\
+AppData\Roaming\Python\Pyt
+hon313\site-packages\torch
+\jit\_script.py:1491: 
+FutureWarning: 
+`torch.jit.script` is 
+deprecated. Please switch 
+to `torch.compile` or 
+`torch.export`.
+  warnings.warn(
+2026-09-07 19:38:04,872 - 
+INFO - Successfully 
+imported kornia (Version: 
+0.8.3)
+2026-09-07 19:38:05,144 - 
+INFO - Successfully 
+imported networkx 
+(Version: 3.6.1)
+2026-09-07 19:38:05,221 - 
+INFO - Successfully 
+imported matplotlib 
+(Version: 3.10.8)
+2026-09-07 19:38:05,624 - 
+INFO - Successfully 
+imported streamlit 
+(Version: 1.63.0)
+2026-09-07 19:38:05,624 - 
+INFO - Environment 
+Verification SUCCESSFUL. 
+All systems go!
+....FFF..F............F................................................. [ 87%]
+..........                                                               [100%]
+================================== FAILURES ===================================
+__________ TestAKAZEDetector.test_returns_keypoints_and_descriptors ___________
+
+self = <tests.test_classical_matching.TestAKAZEDetector object at 0x000001F5BDE37250>
+
+    def test_returns_keypoints_and_descriptors(self):
+>       det = AKAZEDetector(CFG)
+              ^^^^^^^^^^^^^^^^^^
+
+tests\test_classical_matching.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.matching.feature_detector.AKAZEDetector object at 0x000001F59996DD30>
+cfg = {'akaze': {'n_octave_layers': 4, 'n_octaves': 4, 'threshold': 0.001}, 'ransac': {'confidence': 0.99, 'max_iters': 2000...reshold': 0.75, 'sift': {'contrast_threshold': 0.04, 'edge_threshold': 10, 'n_features': 0, 'n_octave_layers': 3, ...}}
+
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+        akaze_cfg = cfg.get("akaze", {})
+>       self._detector = cv2.AKAZE_create(
+                         ^^^^^^^^^^^^^^^^
+            descriptor_type=akaze_cfg.get("descriptor_type", cv2.AKAZE_DESCRIPTOR_MLDB),
+            descriptor_size=akaze_cfg.get("descriptor_size", 0),
+            descriptor_channels=akaze_cfg.get("descriptor_channels", 3),
+            threshold=akaze_cfg.get("threshold", 0.001),
+            nOctaves=akaze_cfg.get("n_octaves", 4),
+            nOctaveLayers=akaze_cfg.get("n_octave_layers", 4),
+        )
+E       AttributeError: module 'cv2' has no attribute 'AKAZE_create'
+
+src\matching\feature_detector.py:43: AttributeError
+__________________ TestAKAZEDetector.test_none_image_raises ___________________
+
+self = <tests.test_classical_matching.TestAKAZEDetector object at 0x000001F5BDE37110>
+
+    def test_none_image_raises(self):
+>       det = AKAZEDetector(CFG)
+              ^^^^^^^^^^^^^^^^^^
+
+tests\test_classical_matching.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.matching.feature_detector.AKAZEDetector object at 0x000001F5BDE82350>
+cfg = {'akaze': {'n_octave_layers': 4, 'n_octaves': 4, 'threshold': 0.001}, 'ransac': {'confidence': 0.99, 'max_iters': 2000...reshold': 0.75, 'sift': {'contrast_threshold': 0.04, 'edge_threshold': 10, 'n_features': 0, 'n_octave_layers': 3, ...}}
+
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+        akaze_cfg = cfg.get("akaze", {})
+>       self._detector = cv2.AKAZE_create(
+                         ^^^^^^^^^^^^^^^^
+            descriptor_type=akaze_cfg.get("descriptor_type", cv2.AKAZE_DESCRIPTOR_MLDB),
+            descriptor_size=akaze_cfg.get("descriptor_size", 0),
+            descriptor_channels=akaze_cfg.get("descriptor_channels", 3),
+            threshold=akaze_cfg.get("threshold", 0.001),
+            nOctaves=akaze_cfg.get("n_octaves", 4),
+            nOctaveLayers=akaze_cfg.get("n_octave_layers", 4),
+        )
+E       AttributeError: module 'cv2' has no attribute 'AKAZE_create'
+
+src\matching\feature_detector.py:43: AttributeError
+_________________ TestAKAZEDetector.test_build_detector_akaze _________________
+
+self = <tests.test_classical_matching.TestAKAZEDetector object at 0x000001F5BBC96D70>
+
+    def test_build_detector_akaze(self):
+>       det = build_detector("akaze", CFG)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_classical_matching.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\matching\feature_detector.py:75: in build_detector
+    return AKAZEDetector(cfg)
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.matching.feature_detector.AKAZEDetector object at 0x000001F5BDE825D0>
+cfg = {'akaze': {'n_octave_layers': 4, 'n_octaves': 4, 'threshold': 0.001}, 'ransac': {'confidence': 0.99, 'max_iters': 2000...reshold': 0.75, 'sift': {'contrast_threshold': 0.04, 'edge_threshold': 10, 'n_features': 0, 'n_octave_layers': 3, ...}}
+
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+        akaze_cfg = cfg.get("akaze", {})
+>       self._detector = cv2.AKAZE_create(
+                         ^^^^^^^^^^^^^^^^
+            descriptor_type=akaze_cfg.get("descriptor_type", cv2.AKAZE_DESCRIPTOR_MLDB),
+            descriptor_size=akaze_cfg.get("descriptor_size", 0),
+            descriptor_channels=akaze_cfg.get("descriptor_channels", 3),
+            threshold=akaze_cfg.get("threshold", 0.001),
+            nOctaves=akaze_cfg.get("n_octaves", 4),
+            nOctaveLayers=akaze_cfg.get("n_octave_layers", 4),
+        )
+E       AttributeError: module 'cv2' has no attribute 'AKAZE_create'
+
+src\matching\feature_detector.py:43: AttributeError
+_______ TestDescriptorMatching.test_akaze_matching_returns_good_matches _______
+
+self = <tests.test_classical_matching.TestDescriptorMatching object at 0x000001F5BDE37610>
+
+    def test_akaze_matching_returns_good_matches(self):
+        warped, _ = _transform_image(BASE, angle_deg=10)
+>       _, da = self._akaze_descs(BASE)
+                ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_classical_matching.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_classical_matching.py:115: in _akaze_descs
+    det = AKAZEDetector(CFG)
+          ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.matching.feature_detector.AKAZEDetector object at 0x000001F5BDEA5BA0>
+cfg = {'akaze': {'n_octave_layers': 4, 'n_octaves': 4, 'threshold': 0.001}, 'ransac': {'confidence': 0.99, 'max_iters': 2000...reshold': 0.75, 'sift': {'contrast_threshold': 0.04, 'edge_threshold': 10, 'n_features': 0, 'n_octave_layers': 3, ...}}
+
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+        akaze_cfg = cfg.get("akaze", {})
+>       self._detector = cv2.AKAZE_create(
+                         ^^^^^^^^^^^^^^^^
+            descriptor_type=akaze_cfg.get("descriptor_type", cv2.AKAZE_DESCRIPTOR_MLDB),
+            descriptor_size=akaze_cfg.get("descriptor_size", 0),
+            descriptor_channels=akaze_cfg.get("descriptor_channels", 3),
+            threshold=akaze_cfg.get("threshold", 0.001),
+            nOctaves=akaze_cfg.get("n_octaves", 4),
+            nOctaveLayers=akaze_cfg.get("n_octave_layers", 4),
+        )
+E       AttributeError: module 'cv2' has no attribute 'AKAZE_create'
+
+src\matching\feature_detector.py:43: AttributeError
+_______________ TestClassicalBaseline.test_akaze_baseline_runs ________________
+
+self = <tests.test_classical_matching.TestClassicalBaseline object at 0x000001F5BDE37D90>
+
+    def test_akaze_baseline_runs(self):
+        warped, _ = _transform_image(BASE, angle_deg=10)
+>       result = run_classical_baseline(BASE, warped, CFG, method="akaze")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_classical_matching.py:248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\matching\classical_baseline.py:34: in run_classical_baseline
+    detector = build_detector(method, config)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\matching\feature_detector.py:75: in build_detector
+    return AKAZEDetector(cfg)
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.matching.feature_detector.AKAZEDetector object at 0x000001F5BDEA5F30>
+cfg = {'akaze': {'n_octave_layers': 4, 'n_octaves': 4, 'threshold': 0.001}, 'ransac': {'confidence': 0.99, 'max_iters': 2000...reshold': 0.75, 'sift': {'contrast_threshold': 0.04, 'edge_threshold': 10, 'n_features': 0, 'n_octave_layers': 3, ...}}
+
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+        akaze_cfg = cfg.get("akaze", {})
+>       self._detector = cv2.AKAZE_create(
+                         ^^^^^^^^^^^^^^^^
+            descriptor_type=akaze_cfg.get("descriptor_type", cv2.AKAZE_DESCRIPTOR_MLDB),
+            descriptor_size=akaze_cfg.get("descriptor_size", 0),
+            descriptor_channels=akaze_cfg.get("descriptor_channels", 3),
+            threshold=akaze_cfg.get("threshold", 0.001),
+            nOctaves=akaze_cfg.get("n_octaves", 4),
+            nOctaveLayers=akaze_cfg.get("n_octave_layers", 4),
+        )
+E       AttributeError: module 'cv2' has no attribute 'AKAZE_create'
+
+src\matching\feature_detector.py:43: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_classical_matching.py::TestAKAZEDetector::test_returns_keypoints_and_descriptors
+FAILED tests/test_classical_matching.py::TestAKAZEDetector::test_none_image_raises
+FAILED tests/test_classical_matching.py::TestAKAZEDetector::test_build_detector_akaze
+FAILED tests/test_classical_matching.py::TestDescriptorMatching::test_akaze_matching_returns_good_matches
+FAILED tests/test_classical_matching.py::TestClassicalBaseline::test_akaze_baseline_runs
+5 failed, 77 passed in 1.19s
+python : 2026-09-07 
+19:38:08,091 - ERROR - 
+Image not found at path: 
+C:\Users\RONANKI JITENDRA\
+Documents\my_projects_in_l
+earning_phase\lunar-image-
+matching\data/raw/ohrc_tes
+t_01.png
+At line:1 char:164
++ ... f8 -Append; python e
+xperiments/run_classical_b
+aseline.py 2>&1 | Out-F 
+...
++                 ~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (2  
+  026-09-07 19:3...hrc_   
+ test_01.png:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+2026-09-07 19:38:08,091 - 
+WARNING - [MISSING] Image 
+not found at path: 
+C:\Users\RONANKI JITENDRA\
+Documents\my_projects_in_l
+earning_phase\lunar-image-
+matching\data/raw/ohrc_tes
+t_01.png -- Place real 
+imagery in data/raw/.
+2026-09-07 19:38:08,091 - 
+INFO - No real lunar 
+images found. Using 
+SYNTHETIC test pair 
+(software verification 
+only).
+2026-09-07 19:38:08,109 - 
+INFO - ===================
+==========================
+===============
+2026-09-07 19:38:08,109 - 
+INFO - Classical Baseline 
+Experiment: synthetic
+2026-09-07 19:38:08,115 - 
+INFO - -- Running SIFT --
+2026-09-07 19:38:08,238 - 
+INFO -   kp_a=2158 
+kp_b=2495 candidates=161 
+inliers=95 ratio=0.59 
+rmse=0.2122 status=ok 
+elapsed=0.122s
+2026-09-07 19:38:08,324 - 
+INFO - -- Running AKAZE --
+Traceback (most recent 
+call last):
+  File "C:\Users\RONANKI J
+ITENDRA\Documents\my_proje
+cts_in_learning_phase\luna
+r-image-matching\experimen
+ts\run_classical_baseline.
+py", line 122, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\RONANKI J
+ITENDRA\Documents\my_proje
+cts_in_learning_phase\luna
+r-image-matching\experimen
+ts\run_classical_baseline.
+py", line 118, in main
+    run_exp(ia, ib, 
+"synthetic")
+    ~~~~~~~^^^^^^^^^^^^^^^
+^^^^^^
+  File "C:\Users\RONANKI J
+ITENDRA\Documents\my_proje
+cts_in_learning_phase\luna
+r-image-matching\experimen
+ts\run_classical_baseline.
+py", line 82, in run_exp
+    res = run_classical_ba
+seline(img_a, img_b, cfg, 
+method=mth)
+  File "C:\Users\RONANKI J
+ITENDRA\Documents\my_proje
+cts_in_learning_phase\luna
+r-image-matching\src\match
+ing\classical_baseline.py"
+, line 34, in 
+run_classical_baseline
+    detector = 
+build_detector(method, 
+config)
+  File "C:\Users\RONANKI J
+ITENDRA\Documents\my_proje
+cts_in_learning_phase\luna
+r-image-matching\src\match
+ing\feature_detector.py", 
+line 75, in build_detector
+    return 
+AKAZEDetector(cfg)
+  File "C:\Users\RONANKI J
+ITENDRA\Documents\my_proje
+cts_in_learning_phase\luna
+r-image-matching\src\match
+ing\feature_detector.py", 
+line 43, in __init__
+    self._detector = 
+cv2.AKAZE_create(
+                     
+^^^^^^^^^^^^^^^^
+AttributeError: module 
+'cv2' has no attribute 
+'AKAZE_create'

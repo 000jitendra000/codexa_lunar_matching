@@ -1,0 +1,38 @@
+{
+  "images": [
+    {
+      "image_id": "OHRC_test_01",
+      "mission": "Chandrayaan-2",
+      "sensor": "OHRC",
+      "file_path": "data/raw/ohrc_test_01.png",
+      "width": 1024,
+      "height": 1024,
+      "resolution_m_px": 0.25,
+      "acquisition_info": "2020-01-01T00:00:00Z",
+      "latitude": -70.0,
+      "longitude": 20.0,
+      "source_information": "ISRO ISSDC PRADAN"
+    },
+    {
+      "image_id": "LROC_test_01",
+      "mission": "LRO",
+      "sensor": "LROC NAC",
+      "file_path": "data/raw/lroc_test_01.png",
+      "width": 1024,
+      "height": 1024,
+      "resolution_m_px": 0.5,
+      "acquisition_info": "2020-02-01T00:00:00Z",
+      "latitude": -70.0,
+      "longitude": 20.0,
+      "source_information": "NASA PDS"
+    }
+  ],
+  "pairs": [
+    {
+      "source_id": "OHRC_test_01",
+      "reference_id": "LROC_test_01",
+      "label": "positive",
+      "description": "Same lunar region observed by OHRC and LROC NAC"
+    }
+  ]
+}
