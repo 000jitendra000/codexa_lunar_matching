@@ -23,6 +23,8 @@ from typing import Dict, Any, List, Optional, Tuple
 import logging
 import numpy as np
 
+from src.matching.progress import ProgressEvent
+
 from src.matching.correspondence_fusion import Correspondence
 from src.matching.transformation import SimilarityTransform2D, estimate_similarity_transform
 from src.matching.hybrid_matcher import HybridMatchResult
@@ -182,6 +184,7 @@ class RegistrationEngine:
         image_a: np.ndarray,
         image_b: np.ndarray,
         hybrid_result: HybridMatchResult,
+        progress_callback: Optional[Any] = None,
     ) -> RegistrationResult:
         """
         Execute the full registration and quality assessment pipeline.
@@ -190,10 +193,17 @@ class RegistrationEngine:
             image_a: Reference image (Image A).
             image_b: Query image to register (Image B).
             hybrid_result: Verified HybridMatchResult produced by HybridMatcher.
+            progress_callback: Optional callback receiving ProgressEvent objects.
 
         Returns:
             RegistrationResult container.
         """
+        def _notify(evt: ProgressEvent):
+            if progress_callback is not None:
+                try:
+                    progress_callback(evt)
+                except Exception as p_err:
+                    logger.debug("Progress callback error: %s", p_err)
         # 1. Validate hybrid match result
         if (
             not isinstance(hybrid_result, HybridMatchResult)

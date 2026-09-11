@@ -8,6 +8,20 @@ class Config:
     DATA_DIR = "data"
     RAW_DIR = "data/raw"
     PROCESSED_DIR = "data/processed"
+    VISUALIZATION_DIR = "data/processed/visualizations"
+
+    # -- Visualization & Explainability ---------------------------------------
+    VISUALIZATION = {
+        "enabled": True,
+        "output_dir": "data/processed/visualizations",
+        "max_visualized_matches": 100,
+        "include_outliers": True,
+        "include_checkerboard": True,
+        "confidence_sigma": 15.0,
+        "overlay_alpha": 0.45,
+        "max_display_dim": 1200,
+        "colormap": "TURBO",
+    }
 
     # ── Phase 3: Preprocessing Pipeline ──────────────────────────────────────
     PREPROCESSING = {

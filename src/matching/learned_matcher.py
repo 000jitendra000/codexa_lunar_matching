@@ -22,6 +22,8 @@ from typing import Dict, Any, List, Optional, Tuple
 import logging
 import numpy as np
 
+from src.matching.progress import ProgressEvent
+
 logger = logging.getLogger(__name__)
 
 
@@ -196,13 +198,19 @@ class BaseLearnedMatcher(ABC):
     """Abstract base class for learned deep feature matchers."""
 
     @abstractmethod
-    def match(self, image_a: np.ndarray, image_b: np.ndarray) -> LearnedMatchResult:
+    def match(
+        self,
+        image_a: np.ndarray,
+        image_b: np.ndarray,
+        progress_callback: Optional[Any] = None,
+    ) -> LearnedMatchResult:
         """
         Estimate dense/semi-dense keypoint correspondences between Image A and Image B.
 
         Args:
             image_a: 2D grayscale image array (H, W).
             image_b: 2D grayscale image array (H, W).
+            progress_callback: Optional callback receiving ProgressEvent objects.
 
         Returns:
             LearnedMatchResult containing correspondences and status flags.
@@ -226,7 +234,12 @@ class MockLearnedMatcher(BaseLearnedMatcher):
         self.available = available
         self.fail_reason = fail_reason
 
-    def match(self, image_a: np.ndarray, image_b: np.ndarray) -> LearnedMatchResult:
+    def match(
+        self,
+        image_a: np.ndarray,
+        image_b: np.ndarray,
+        progress_callback: Optional[Any] = None,
+    ) -> LearnedMatchResult:
         if not self.available:
             return LearnedMatchResult(
                 correspondences=[],
@@ -396,7 +409,12 @@ class LoFTRMatcher(BaseLearnedMatcher):
             )
         return correspondences
 
-    def match(self, image_a: np.ndarray, image_b: np.ndarray) -> LearnedMatchResult:
+    def match(
+        self,
+        image_a: np.ndarray,
+        image_b: np.ndarray,
+        progress_callback: Optional[Any] = None,
+    ) -> LearnedMatchResult:
         """Run LoFTR feature matching on Image A and Image B with automatic memory-bounded tiling."""
         if not self._ensure_initialized():
             return LearnedMatchResult(
@@ -507,11 +525,19 @@ class LoFTRMatcher(BaseLearnedMatcher):
                     tile_corrs = self._match_single_pass(tile_a, tile_b)
                     tile_pairs_processed += 1
 
-                    logger.info(
-                        "Processed LoFTR tile pair %d/%d (row %d/%d, col %d/%d) -> %d raw tile matches",
-                        tile_pairs_processed, tile_pairs_count,
-                        r_idx + 1, len(rows_a), c_idx + 1, len(cols_a), len(tile_corrs)
-                    )
+                    if progress_callback is not None:
+                        try:
+                            progress_callback(
+                                ProgressEvent(
+                                    stage="learned_matching",
+                                    current=tile_pairs_processed,
+                                    total=tile_pairs_count,
+                                    progress=float(tile_pairs_processed) / float(tile_pairs_count),
+                                    message=f"Processed LoFTR tile pair {tile_pairs_processed}/{tile_pairs_count}",
+                                )
+                            )
+                        except Exception as p_err:
+                            logger.debug("Progress callback exception: %s", p_err)
 
                     for tc in tile_corrs:
                         mapped_pt_a = np.array([tc.point_a[0] + x_a0, tc.point_a[1] + y_a0], dtype=np.float64)

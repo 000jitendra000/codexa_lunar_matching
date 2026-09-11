@@ -21,6 +21,8 @@ from typing import Dict, Any, List, Optional, Tuple
 import logging
 import numpy as np
 
+from src.matching.progress import ProgressEvent
+
 from src.crater_detection.pipeline import CraterDetectionPipeline
 from src.crater_graph.builder import build_crater_graph
 from src.crater_graph.invariants import (
@@ -167,6 +169,7 @@ class HybridMatcher:
         self,
         image_a: np.ndarray,
         image_b: np.ndarray,
+        progress_callback: Optional[Any] = None,
         **kwargs,
     ) -> HybridMatchResult:
         """
@@ -175,6 +178,7 @@ class HybridMatcher:
         Args:
             image_a: Grayscale image A (H, W) or (H, W, C).
             image_b: Grayscale image B (H, W) or (H, W, C).
+            progress_callback: Optional callback receiving ProgressEvent objects.
             **kwargs: Overrides for runtime parameters.
 
         Returns:
@@ -183,10 +187,19 @@ class HybridMatcher:
         crater_corrs: List[Correspondence] = []
         crater_meta: Dict[str, Any] = {"enabled": self.enable_crater}
 
+        def _notify(evt: ProgressEvent):
+            if progress_callback is not None:
+                try:
+                    progress_callback(evt)
+                except Exception as p_err:
+                    logger.debug("Progress callback error: %s", p_err)
+
         # 1. Classical Crater Branch
         if self.enable_crater and self.crater_pipeline is not None:
             try:
+                _notify(ProgressEvent(stage="crater_detection", current=1, total=2, progress=0.5, message="Detecting craters in image A"))
                 craters_a = self.crater_pipeline.detect(image_a)
+                _notify(ProgressEvent(stage="crater_detection", current=2, total=2, progress=1.0, message="Detecting craters in image B"))
                 craters_b = self.crater_pipeline.detect(image_b)
 
                 graph_a = build_crater_graph(craters_a)
@@ -228,7 +241,14 @@ class HybridMatcher:
 
         if self.enable_learned and self.learned_matcher is not None:
             try:
-                learned_res = self.learned_matcher.match(image_a, image_b)
+                # Check if learned_matcher supports progress_callback
+                import inspect
+                sig = inspect.signature(self.learned_matcher.match)
+                if "progress_callback" in sig.parameters:
+                    learned_res = self.learned_matcher.match(image_a, image_b, progress_callback=progress_callback)
+                else:
+                    learned_res = self.learned_matcher.match(image_a, image_b)
+
                 learned_corrs = learned_matches_to_correspondences(learned_res)
                 learned_meta.update({
                     "available": learned_res.available,
@@ -242,6 +262,7 @@ class HybridMatcher:
                 learned_meta.update({"status": "failed", "reason": str(e)})
 
         # 3. Fuse Correspondences
+        _notify(ProgressEvent(stage="correspondence_fusion", current=1, total=1, progress=1.0, message="Fusing crater and learned correspondences"))
         shape_a = image_a.shape[:2] if hasattr(image_a, "shape") else None
         shape_b = image_b.shape[:2] if hasattr(image_b, "shape") else None
 
@@ -252,6 +273,7 @@ class HybridMatcher:
             image_shape_b=shape_b,
         )
 
+        _notify(ProgressEvent(stage="geometric_verification", current=1, total=1, progress=1.0, message="Executing RANSAC geometric verification"))
         return self._run_geometric_verification(
             fused_correspondences=fused,
             num_crater_raw=len(crater_corrs),
