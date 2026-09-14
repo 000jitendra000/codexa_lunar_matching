@@ -724,7 +724,7 @@
   </div>
 
   <script>
-    const API_BASE = "http://127.0.0.1:8000";
+    const API_BASE = window.location.origin.startsWith("http") ? window.location.origin : "http://127.0.0.1:8000";
     let fileObjA = null;
     let fileObjB = null;
     let currentJobId = null;
@@ -746,7 +746,7 @@
           throw new Error("HTTP error");
         }
       } catch (err) {
-        text.textContent = "API Offline (127.0.0.1:8000)";
+        text.textContent = `API Offline (${API_BASE})`;
         badge.style.background = "rgba(244, 63, 94, 0.1)";
         badge.style.borderColor = "rgba(244, 63, 94, 0.3)";
         badge.style.color = "var(--accent-rose)";
