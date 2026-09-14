@@ -7,4 +7,8 @@ scipy
 kornia
 networkx
 matplotlib
-streamlit
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+
