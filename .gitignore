@@ -54,6 +54,8 @@ data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+data/processed/visualizations/*
+!data/processed/visualizations/.gitkeep
 data/train/*
 !data/train/.gitkeep
 data/val/*

@@ -13,12 +13,13 @@ import uuid
 import numpy as np
 import cv2
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, Set
 
 from src.matching.hybrid_matcher import HybridMatcher, HybridMatchResult
 from src.registration.registration_engine import RegistrationEngine, RegistrationResult
 from src.matching.progress import ProgressEvent
 from src.visualization.match_visualizer import MatchVisualizer
+from src.utils.memory_debug import log_memory_stage
 from api.schemas import (
     MatchResultSummary,
     TransformSchema,
@@ -32,6 +33,8 @@ from api.progress import progress_tracker
 
 logger = logging.getLogger(__name__)
 
+
+import gc
 
 class JobManager:
     """
@@ -47,6 +50,31 @@ class JobManager:
         self._jobs_lock = threading.Lock()
         self._execution_lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="lunar_job_worker")
+        self.max_job_history: int = int(self.visualizer.config.get("max_job_history", 5))
+
+    def _evict_old_completed_jobs(self):
+        """Evict oldest finished jobs from in-memory _jobs dictionary if history limit is exceeded."""
+        with self._jobs_lock:
+            finished_jobs = [
+                (jid, jdata)
+                for jid, jdata in self._jobs.items()
+                if jdata.get("status") in ("completed", "failed")
+            ]
+            if len(finished_jobs) > self.max_job_history:
+                # Sort by completed_at (or created_at if completed_at is None)
+                finished_jobs.sort(
+                    key=lambda x: x[1].get("completed_at") or x[1].get("created_at") or 0
+                )
+                evict_count = len(finished_jobs) - self.max_job_history
+                for i in range(evict_count):
+                    evict_id = finished_jobs[i][0]
+                    del self._jobs[evict_id]
+                    logger.info("Evicted old job metadata from memory: %s", evict_id)
+
+    def get_active_job_ids(self) -> Set[str]:
+        """Return set of currently active/registered job IDs."""
+        with self._jobs_lock:
+            return set(self._jobs.keys())
 
     def create_job(self, bytes_a: bytes, bytes_b: bytes) -> Tuple[str, str]:
         """
@@ -128,6 +156,8 @@ class JobManager:
                 img_a = self._jobs[job_id]["image_a"]
                 img_b = self._jobs[job_id]["image_b"]
 
+            log_memory_stage("rss_after_image_loading")
+
             # Emit initial stage="loading" progress event
             init_event = ProgressEvent(
                 stage="loading",
@@ -162,6 +192,7 @@ class JobManager:
                         )
                     except Exception as reg_err:
                         logger.warning("Registration engine failed for job %s: %s", job_id, reg_err)
+                log_memory_stage("rss_after_registration")
 
                 # Convert to MatchResultSummary
                 summary = self._build_result_summary(hybrid_res, reg_res)
@@ -169,12 +200,14 @@ class JobManager:
                 # 3. Generate Visualization Assets (isolated error handling)
                 viz_schema: Optional[VisualizationSchema] = None
                 try:
+                    active_ids = self.get_active_job_ids()
                     viz_res = self.visualizer.generate(
                         image_a=img_a,
                         image_b=img_b,
                         match_result=hybrid_res,
                         registration_result=reg_res,
                         job_id=job_id,
+                        active_job_ids=active_ids,
                     )
                     viz_schema = VisualizationSchema(
                         confidence_map_a=f"/match/{job_id}/visualizations/confidence_map_a.png" if viz_res.confidence_map_a else None,
@@ -185,6 +218,7 @@ class JobManager:
                     )
                 except Exception as viz_err:
                     logger.warning("MatchVisualizer failed for job %s: %s", job_id, viz_err, exc_info=True)
+                log_memory_stage("rss_after_visualization")
 
                 # Emit final completed event
                 completed_evt = ProgressEvent(
@@ -201,9 +235,6 @@ class JobManager:
                     self._jobs[job_id]["completed_at"] = time.time()
                     self._jobs[job_id]["result"] = summary
                     self._jobs[job_id]["visualizations"] = viz_schema
-                    # Release image memory
-                    self._jobs[job_id]["image_a"] = None
-                    self._jobs[job_id]["image_b"] = None
 
                 progress_tracker.notify_job_finished(job_id, "completed", summary.model_dump())
                 logger.info("Job %s completed successfully (matched=%s).", job_id, summary.matched)
@@ -225,12 +256,21 @@ class JobManager:
                     self._jobs[job_id]["status"] = "failed"
                     self._jobs[job_id]["completed_at"] = time.time()
                     self._jobs[job_id]["error"] = safe_err_msg
-                    self._jobs[job_id]["image_a"] = None
-                    self._jobs[job_id]["image_b"] = None
 
                 progress_tracker.notify_job_finished(
                     job_id, "failed", {"job_id": job_id, "status": "failed", "error": safe_err_msg}
                 )
+            finally:
+                # Guaranteed cleanup of raw input images in RAM on both success & failure
+                with self._jobs_lock:
+                    if job_id in self._jobs:
+                        self._jobs[job_id]["image_a"] = None
+                        self._jobs[job_id]["image_b"] = None
+                img_a = None
+                img_b = None
+                self._evict_old_completed_jobs()
+                gc.collect()
+                log_memory_stage("rss_after_complete_job_cleanup")
 
     def _build_result_summary(
         self,

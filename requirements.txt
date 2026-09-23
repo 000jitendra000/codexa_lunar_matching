@@ -11,4 +11,5 @@ fastapi
 uvicorn[standard]
 python-multipart
 pydantic
+streamlit
 

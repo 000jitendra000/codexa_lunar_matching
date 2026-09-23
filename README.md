@@ -512,13 +512,17 @@ else:
 ```
 
 ### Limitation Note
+### Limitation Note
 - **Real OHRC/LROC imagery is not yet present in `data/raw/`**; all evaluations remain synthetic.
 - Quality categories are engineering heuristics; no scientific planetary ground-truth accuracy has been established.
-- Strictly model-side Python; no web frontend, Node backend, REST API, or database is included.
 
 ## Usage Commands
 - **Environment Check**: `python verify_env.py`
-- **Run all tests**: `python -m pytest -q`
+- **Run Streamlit Demo**: `python -m streamlit run streamlit_app.py`
+- **Run API Server**: `python -m uvicorn api.main:app --host 0.0.0.0 --port 8000`
+- **Run full test suite**: `python -m pytest`
+- **Run Streamlit unit tests**: `python -m pytest tests/test_streamlit_app.py`
+- **Run production audit tests**: `python -m pytest tests/test_production_audit.py`
 - **Dataset validation**: `python src/preprocessing/validate_dataset.py`
 - **Dataset inspection**: `python experiments/inspect_dataset.py`
 - **Preprocessing visualization**: `python experiments/inspect_preprocessing.py`
@@ -532,23 +536,41 @@ else:
 - **Hybrid matching inspection**: `python experiments/inspect_hybrid_matching.py`
 - **Registration & quality inspection**: `python experiments/inspect_registration.py`
 
+## Environment Variables & Controls
+
+| Environment Variable | Allowed Values | Default | Rationale / Behavior |
+|---|---|---|---|
+| `LUNAR_PRODUCTION` | `0`, `1`, `true`, `false` | `1` | Enforces production PNG asset bounding & retention policies. |
+| `LUNAR_MEMORY_DEBUG` | `0`, `1`, `true`, `false` | `0` | Enables process RSS memory tracking across 8 pipeline checkpoints. |
+| `PORT` | Integer (e.g. `10000`, `8000`) | `8000` | Port for FastAPI server when deployed on cloud platforms like Render. |
+
 ## Repository Structure
 ```
 lunar-image-matching/
   README.md
+  README_API.md
+  Lunar_matching_frontend.html <- Standalone HTML5/CSS3/JS Web Application
   requirements.txt
   verify_env.py
-  configs/default.py        <- Configuration (PREPROCESSING, CLASSICAL_MATCHING, CRATER_DETECTION, CRATER_GRAPH, CRATER_INVARIANTS, CRATER_MATCHING, TRANSFORMATION_ESTIMATION, RANSAC, LEARNED_MATCHING, CORRESPONDENCE_FUSION, HYBRID_MATCHING, TIE_POINT_SELECTION, SUBPIXEL_REFINEMENT, REGISTRATION, REGISTRATION_QUALITY)
+  api/
+    main.py                 <- FastAPI application entrypoint & middleware
+    routes.py               <- REST endpoints (/match, /match/{id}, /progress, /visualizations)
+    jobs.py                 <- In-process JobManager with single-concurrency lock & RAM bounding
+    schemas.py              <- Pydantic response schemas & serialization
+  configs/
+    default.py              <- Configuration (PREPROCESSING, CLASSICAL_MATCHING, CRATER_DETECTION, CRATER_GRAPH, CRATER_INVARIANTS, CRATER_MATCHING, TRANSFORMATION_ESTIMATION, RANSAC, LEARNED_MATCHING, CORRESPONDENCE_FUSION, HYBRID_MATCHING, TIE_POINT_SELECTION, SUBPIXEL_REFINEMENT, REGISTRATION, REGISTRATION_QUALITY, VISUALIZATION)
   data/
     raw/                    <- Real lunar images go here (not committed)
-    processed/              <- Pipeline and experiment outputs
+    processed/              <- Pipeline outputs and pruned job visualization subdirectories
     dataset_meta.json       <- Image + pair metadata
   src/
     preprocessing/          <- Image loading, normalization, CLAHE, denoising, pyramid
-    matching/               <- SIFT/AKAZE, matcher, RANSAC (Phase 10), transformation (Phase 9), learned_matcher (Phase 11), correspondence_fusion (Phase 12), hybrid_matcher (Milestone A)
+    matching/               <- SIFT/AKAZE, matcher, RANSAC (Phase 10), transformation (Phase 9), learned_matcher (Phase 11), correspondence_fusion (Phase 12), hybrid_matcher (Milestone A), match_acceptance
     registration/           <- inliers (Phase 14/15), tie_points (Phase 15), refinement (Phase 14), register (Phase 16), quality (Phase 17), registration_engine (Milestone B)
     crater_detection/       <- CraterCandidate types, postprocessing, detectors, pipeline, evaluation
     crater_graph/           <- CraterGraph, builder, features, invariants, constellation_matcher, visualization
+    utils/
+      memory_debug.py       <- Zero-overhead process RSS memory tracking behind LUNAR_MEMORY_DEBUG=1
   experiments/
     inspect_dataset.py                 <- Phase 2 dataset inspection
     inspect_preprocessing.py          <- Phase 3 pipeline visualization
@@ -561,7 +583,10 @@ lunar-image-matching/
     inspect_ransac.py                  <- Phase 10 RANSAC robust estimation demo
     inspect_hybrid_matching.py         <- Milestone A Hybrid matching demo
     inspect_registration.py            <- Milestone B Registration & quality demo
+    test_real_pair.py                  <- Real-image experiment script
   tests/
+    test_api.py                        <- REST API endpoint & SSE progress tests
+    test_production_audit.py           <- Memory & storage retention audit test suite
     test_image_loader.py
     test_validate_dataset.py
     test_preprocessing.py
@@ -597,6 +622,67 @@ lunar-image-matching/
 - **Milestone B (Phases 14+15+16+17)** - COMPLETE: Registration & Quality Engine (verified inlier extraction, uniform tie-point selection, sub-pixel refinement, pull-based image registration, quantitative quality metrics, and unified RegistrationResult).
 - **Milestone C (Phases 18+19)** - COMPLETE: Evaluation & Robustness Engine (synthetic ground-truth error metrics, 10 difficult stress test cases, FailureReason taxonomy, RobustnessRunner, hyperparameter sensitivity analysis, and Evaluator facade).
 - **Match Acceptance Engine** - COMPLETE: Match Acceptance Engine (decoupling geometric consensus from location match decisions with 6 hard evidence criteria, transform sanity checks, and explainable decision outputs).
+- **REST API Backend** - COMPLETE: FastAPI async web application with Server-Sent Events (SSE) streaming, job queue manager, single-concurrency heavy execution locks, and visualization asset routing.
+- **Standalone Web UI** - COMPLETE: Modern HTML5/CSS3/JavaScript single-page application (`Lunar_matching_frontend.html`) featuring interactive dropzones, live SSE stage progress bars, Match Acceptance Engine diagnostic breakdown card, registration quality indicators, and tabbed asset modal viewer.
+- **Production & Render Memory Optimization** - COMPLETE: Production-ready memory & storage management including automated job folder retention pruning, bounded RAM metadata history, prompt image array deallocation, and optional process RSS diagnostics.
+
+---
+
+## Production & Render Deployment Optimizations
+
+To run smoothly on memory-constrained cloud infrastructure (such as Render's 512 MB RAM free tier), the pipeline includes automated storage cleanup, bounded RAM history, and prompt array deallocation:
+
+### 1. Automated Storage Retention Policy
+- Configured via `configs/default.py` (`VISUALIZATION` configuration block):
+  - `retention_hours = 1`: Automatically purges visualization subdirectories older than 1 hour.
+  - `max_job_directories = 5`: Caps maximum persistent visualization folders on disk.
+  - **Active Job Protection**: `cleanup_old_visualizations` accepts `active_job_ids` to ensure currently running matching jobs are never deleted during pruning.
+- **Strict Asset Bounding**: In production mode (`LUNAR_PRODUCTION=1`), the visualizer writes **at most 5 standard PNG assets** per job:
+  1. `confidence_map_a.png`
+  2. `confidence_map_b.png`
+  3. `correspondence_image.png`
+  4. `registration_overlay.png`
+  5. `checkerboard.png`
+
+### 2. In-Memory Job History & Immediate RAM Cleanup
+- **Bounded Job History**: `JobManager` caps completed job metadata dictionary size to `max_job_history = 5` in RAM, evicting the oldest completed job metadata when exceeded.
+- **Guaranteed Array Deallocation**: Raw input NumPy arrays (`image_a`, `image_b`) are set to `None` in a `finally` block in `JobManager._run_job_wrapper` immediately upon job completion or failure.
+- **Intermediate Array Release**: Intermediate confidence maps, downsampled image buffers, and matplotlib plot handles in `MatchVisualizer` are explicitly deleted via `del` and garbage collected via `gc.collect()`.
+
+### 3. Process RSS Memory Diagnostics (`LUNAR_MEMORY_DEBUG=1`)
+- Optional process Resident Set Size (RSS) tracking is integrated via `src/utils/memory_debug.py`.
+- When `LUNAR_MEMORY_DEBUG=1`, RSS memory usage (in MB) is logged across 8 key pipeline checkpoints via `psutil`:
+  - Process RSS before match
+  - RSS after image loading
+  - RSS before LoFTR
+  - RSS after LoFTR (model init & forward pass)
+  - RSS after correspondence fusion
+  - RSS after registration
+  - RSS after visualization
+  - RSS after complete job cleanup (post GC)
+- Disabled by default with zero production overhead.
+
+---
+
+## REST API & Web Application Interface
+
+The project includes a production-ready FastAPI backend and a standalone modern web interface.
+
+### FastAPI Endpoints (`api/`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/match` | Enqueues a new matching job with uploaded `image_a` and `image_b` multipart form payloads. Returns `job_id`. |
+| `GET` | `/match/{job_id}` | Polls job status (`pending`, `running`, `completed`, `failed`), match summary, and visualization URLs. |
+| `GET` | `/match/{job_id}/progress` | Server-Sent Events (SSE) stream delivering real-time progress events as stages execute. |
+| `GET` | `/match/{job_id}/visualizations/{name}` | Serves generated visualization PNG assets (`confidence_map_a`, `correspondence_image`, etc.). Returns `404` for evicted jobs. |
+
+### Standalone Web Frontend (`Lunar_matching_frontend.html`)
+- **Single-Page Architecture**: Zero-dependency plain HTML5/CSS3/JavaScript frontend with dark mode aesthetics.
+- **Drag-and-Drop Dropzones**: Interactive file input dropzones for Image A and Image B.
+- **Live SSE Progress Tracker**: Real-time progress bar reflecting active pipeline stages (`loading`, `crater_detection`, `learned_matching`, `correspondence_fusion`, `geometric_verification`, `registration`, `completed`).
+- **Match Acceptance Breakdown Card**: Displays location match status (`ACCEPTED` vs `REJECTED`), overall quality score, and hard criteria checks table (inliers, inlier ratio, RMSE, coverage, confidence).
+- **Tabbed Visualization Viewer**: Modal gallery supporting full-resolution inspection of confidence heatmaps, correspondences, registration overlay, and checkerboard alignment.
 
 ---
 

@@ -1,3 +1,5 @@
+import os
+
 # Default configuration
 
 class Config:
@@ -13,6 +15,11 @@ class Config:
     # -- Visualization & Explainability ---------------------------------------
     VISUALIZATION = {
         "enabled": True,
+        "production_mode": os.environ.get("LUNAR_PRODUCTION", "true").lower() in ("true", "1", "yes"),
+        "retention_enabled": True,
+        "retention_hours": 1,
+        "max_job_directories": 5,
+        "max_job_history": 5,
         "output_dir": "data/processed/visualizations",
         "max_visualized_matches": 100,
         "include_outliers": True,

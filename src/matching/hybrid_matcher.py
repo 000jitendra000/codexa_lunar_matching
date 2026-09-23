@@ -49,6 +49,7 @@ from src.matching.match_acceptance import (
     MatchAcceptanceEngine,
     compute_spatial_coverage,
 )
+from src.utils.memory_debug import log_memory_stage
 
 logger = logging.getLogger(__name__)
 
@@ -209,6 +210,8 @@ class HybridMatcher:
                 except Exception as p_err:
                     logger.debug("Progress callback error: %s", p_err)
 
+        log_memory_stage("process_before_match")
+
         # 1. Classical Crater Branch
         if self.enable_crater and self.crater_pipeline is not None:
             try:
@@ -256,6 +259,7 @@ class HybridMatcher:
 
         if self.enable_learned and self.learned_matcher is not None:
             try:
+                log_memory_stage("rss_before_loftr")
                 # Check if learned_matcher supports progress_callback
                 import inspect
                 sig = inspect.signature(self.learned_matcher.match)
@@ -265,6 +269,7 @@ class HybridMatcher:
                     learned_res = self.learned_matcher.match(image_a, image_b)
 
                 learned_corrs = learned_matches_to_correspondences(learned_res)
+                log_memory_stage("rss_after_loftr")
                 learned_meta.update({
                     "available": learned_res.available,
                     "backend": learned_res.backend,
@@ -287,6 +292,7 @@ class HybridMatcher:
             image_shape_a=shape_a,
             image_shape_b=shape_b,
         )
+        log_memory_stage("rss_after_correspondence_fusion")
 
         _notify(ProgressEvent(stage="geometric_verification", current=1, total=1, progress=1.0, message="Executing RANSAC geometric verification"))
         return self._run_geometric_verification(
