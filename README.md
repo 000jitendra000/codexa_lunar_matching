@@ -596,8 +596,37 @@ lunar-image-matching/
 - **Milestone A (Phases 11+12+13)** - COMPLETE: Hybrid Matching Engine (LoFTR learned matcher, correspondence fusion, Phase 10 RANSAC integration, unified HybridMatchResult).
 - **Milestone B (Phases 14+15+16+17)** - COMPLETE: Registration & Quality Engine (verified inlier extraction, uniform tie-point selection, sub-pixel refinement, pull-based image registration, quantitative quality metrics, and unified RegistrationResult).
 - **Milestone C (Phases 18+19)** - COMPLETE: Evaluation & Robustness Engine (synthetic ground-truth error metrics, 10 difficult stress test cases, FailureReason taxonomy, RobustnessRunner, hyperparameter sensitivity analysis, and Evaluator facade).
+- **Match Acceptance Engine** - COMPLETE: Match Acceptance Engine (decoupling geometric consensus from location match decisions with 6 hard evidence criteria, transform sanity checks, and explainable decision outputs).
 
 ---
+
+## Match Acceptance Engine & Location Match Standard
+
+The **Match Acceptance Engine** (`src/matching/match_acceptance.py`) enforces a strict, deterministic, and explainable evidence standard to decide whether an already-computed geometric consensus (RANSAC) should be accepted as a true **LOCATION MATCH** (`matched=True`).
+
+### Core Design Philosophy
+- **RANSAC vs. Location Match**: Geometric consensus (RANSAC) estimates a candidate transform, but RANSAC success alone does **NOT** imply location match.
+- **Evidence-Based Acceptance**: Accidental consensus from few correspondences (e.g., 3 inliers + 0.80 px RMSE) is explicitly rejected.
+- **Backward Compatibility**: Fully preserves existing matching pipelines, APIs, and response structures.
+
+### Hard Evidence Criteria
+
+| Criterion Check | Config Key | Default Threshold | Diagnostic Action on Failure |
+|---|---|---|---|
+| **RANSAC Consensus** | `enabled` | `True` | Rejects if RANSAC failed |
+| **Minimum Inliers** | `minimum_inliers` | `10` | Rejects if verified inliers $< 10$ |
+| **Minimum Inlier Ratio** | `minimum_inlier_ratio` | `0.20` | Rejects if inlier ratio $< 20.0\%$ |
+| **Maximum Reprojection RMSE** | `maximum_rmse_px` | `3.0 px` | Rejects if RMSE $> 3.0\text{ px}$ |
+| **Minimum Spatial Coverage** | `minimum_coverage` | `0.15` | Rejects if 6x6 grid coverage $< 15.0\%$ |
+| **Minimum Confidence** | `minimum_confidence` | `0.50` | Rejects if overall confidence $< 0.50$ |
+| **Transform Sanity** | `require_finite_transform` / `require_positive_scale` | `True` | Rejects non-finite (NaN/Inf) or non-positive scale |
+
+### Match Acceptance Decision Container (`MatchAcceptanceResult`)
+- `accepted`: Boolean decision (`True` / `False`).
+- `status`: Classification string (`"ACCEPTED"` or `"REJECTED"`).
+- `reason`: Explainable diagnostic explanation detailing failed checks.
+- `checks`: Per-criterion breakdown dictionary with `passed`, `value`, and `threshold`.
+- `acceptance_score`: Deterministic quality metric in $[0.0, 1.0]$.
 
 ## Milestone C: Evaluation & Robustness Framework
 

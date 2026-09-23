@@ -44,6 +44,11 @@ from src.matching.correspondence_fusion import (
     fuse_correspondences,
     correspondences_to_arrays,
 )
+from src.matching.match_acceptance import (
+    MatchAcceptanceResult,
+    MatchAcceptanceEngine,
+    compute_spatial_coverage,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +77,7 @@ class HybridMatchResult:
     confidence: float
     rmse: Optional[float]
     inlier_ratio: float
+    acceptance: Optional[MatchAcceptanceResult] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -88,7 +94,7 @@ class HybridMatchResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize hybrid match result to primitive dictionary."""
-        return {
+        out = {
             "matched": bool(self.matched),
             "num_correspondences": len(self.correspondences),
             "num_inliers": len(self.inlier_indices),
@@ -102,12 +108,16 @@ class HybridMatchResult:
             "correspondences": [c.to_dict() for c in self.correspondences],
             "metadata": self.metadata,
         }
+        if self.acceptance is not None:
+            out["acceptance"] = self.acceptance.to_dict()
+        return out
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "HybridMatchResult":
         """Deserialize hybrid match result from dictionary."""
         tf = SimilarityTransform2D.from_dict(data["transform"]) if data.get("transform") is not None else None
         corrs = [Correspondence.from_dict(c) for c in data.get("correspondences", [])]
+        acc = MatchAcceptanceResult.from_dict(data["acceptance"]) if data.get("acceptance") is not None else None
         return cls(
             matched=bool(data["matched"]),
             correspondences=corrs,
@@ -117,6 +127,7 @@ class HybridMatchResult:
             confidence=float(data.get("confidence", 0.0)),
             rmse=float(data["rmse"]) if data.get("rmse") is not None else None,
             inlier_ratio=float(data.get("inlier_ratio", 0.0)),
+            acceptance=acc,
             metadata=dict(data.get("metadata", {})),
         )
 
@@ -164,6 +175,10 @@ class HybridMatcher:
             self.learned_matcher = learned_matcher or LoFTRMatcher()
         else:
             self.learned_matcher = None
+
+        # Initialize Match Acceptance Engine
+        acc_cfg = self.config.get("match_acceptance", self.config)
+        self.acceptance_engine = MatchAcceptanceEngine(acc_cfg)
 
     def match(
         self,
@@ -280,6 +295,8 @@ class HybridMatcher:
             num_learned_raw=len(learned_corrs),
             crater_meta=crater_meta,
             learned_meta=learned_meta,
+            image_shape_a=shape_a,
+            image_shape_b=shape_b,
             **kwargs,
         )
 
@@ -307,6 +324,8 @@ class HybridMatcher:
             num_learned_raw=len(learned_correspondences),
             crater_meta={"precomputed": True},
             learned_meta={"precomputed": True},
+            image_shape_a=image_shape_a,
+            image_shape_b=image_shape_b,
             **kwargs,
         )
 
@@ -335,6 +354,16 @@ class HybridMatcher:
         # Check minimum correspondence threshold
         if total_fused < min_inliers:
             base_meta["reason"] = f"Insufficient fused correspondences: {total_fused} < min_inliers ({min_inliers})."
+            acc_res = self.acceptance_engine.evaluate(
+                num_inliers=0,
+                num_candidates=total_fused,
+                inlier_ratio=0.0,
+                rmse=None,
+                coverage=0.0,
+                confidence=0.0,
+                ransac_success=False,
+            )
+            base_meta["acceptance"] = acc_res.to_dict()
             return HybridMatchResult(
                 matched=False,
                 correspondences=fused_correspondences,
@@ -344,6 +373,7 @@ class HybridMatcher:
                 confidence=0.0,
                 rmse=None,
                 inlier_ratio=0.0,
+                acceptance=acc_res,
                 metadata=base_meta,
             )
 
@@ -377,8 +407,46 @@ class HybridMatcher:
             conf_scale = max(0.0, 1.0 - (ransac_res.rmse / (reproj_thresh * 2.0)))
             hybrid_confidence = float(min(1.0, max(0.0, ransac_res.inlier_ratio * 0.7 + conf_scale * 0.3)))
 
+            # Compute spatial coverage over Image A
+            img_shape_a = kwargs.get("image_shape_a")
+            inlier_pts_a = pts_a[ransac_res.inlier_indices] if len(ransac_res.inlier_indices) > 0 else np.empty((0, 2))
+            coverage = compute_spatial_coverage(inlier_pts_a, image_shape=img_shape_a)
+            if coverage is None and "coverage" in kwargs:
+                coverage = float(kwargs["coverage"])
+
+            # Determine acceptance overrides if custom min_inliers passed
+            override_min_inliers = None
+            if "minimum_inliers" in kwargs:
+                override_min_inliers = int(kwargs["minimum_inliers"])
+            elif "min_inliers" in kwargs:
+                override_min_inliers = int(kwargs["min_inliers"])
+            elif "min_inliers" in self.config and "match_acceptance" not in self.config:
+                override_min_inliers = int(self.config["min_inliers"])
+            elif hasattr(self, "min_inliers") and "match_acceptance" not in self.config:
+                override_min_inliers = int(self.min_inliers)
+
+            override_coverage = kwargs.get("minimum_coverage")
+            override_confidence = kwargs.get("minimum_confidence")
+
+            acc_res = self.acceptance_engine.evaluate(
+                num_inliers=len(ransac_res.inlier_indices),
+                num_candidates=total_fused,
+                inlier_ratio=ransac_res.inlier_ratio,
+                rmse=ransac_res.rmse,
+                coverage=coverage,
+                confidence=hybrid_confidence,
+                transform=ransac_res.transform,
+                ransac_success=True,
+                override_minimum_inliers=override_min_inliers,
+                override_minimum_coverage=override_coverage,
+                override_minimum_confidence=override_confidence,
+            )
+
+            base_meta["acceptance"] = acc_res.to_dict()
+            base_meta["coverage"] = coverage
+
             return HybridMatchResult(
-                matched=True,
+                matched=acc_res.accepted,
                 correspondences=fused_correspondences,
                 inlier_indices=ransac_res.inlier_indices,
                 outlier_indices=ransac_res.outlier_indices,
@@ -386,11 +454,22 @@ class HybridMatcher:
                 confidence=hybrid_confidence,
                 rmse=ransac_res.rmse,
                 inlier_ratio=ransac_res.inlier_ratio,
+                acceptance=acc_res,
                 metadata=base_meta,
             )
 
         except ValueError as e:
             base_meta["reason"] = f"RANSAC consensus verification failed: {str(e)}"
+            acc_res = self.acceptance_engine.evaluate(
+                num_inliers=0,
+                num_candidates=total_fused,
+                inlier_ratio=0.0,
+                rmse=None,
+                coverage=0.0,
+                confidence=0.0,
+                ransac_success=False,
+            )
+            base_meta["acceptance"] = acc_res.to_dict()
             return HybridMatchResult(
                 matched=False,
                 correspondences=fused_correspondences,
@@ -400,5 +479,6 @@ class HybridMatcher:
                 confidence=0.0,
                 rmse=None,
                 inlier_ratio=0.0,
+                acceptance=acc_res,
                 metadata=base_meta,
             )

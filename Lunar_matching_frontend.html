@@ -103,6 +103,7 @@
       font-weight: 700;
       background: linear-gradient(90deg, #ffffff, var(--accent-cyan));
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: -0.02em;
     }
@@ -405,6 +406,12 @@
       color: var(--accent-emerald);
     }
 
+    .results-banner.rejected {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: var(--accent-rose);
+    }
+
     .results-banner.uncertain {
       background: rgba(245, 158, 11, 0.15);
       border: 1px solid rgba(245, 158, 11, 0.4);
@@ -418,6 +425,289 @@
       display: flex;
       align-items: center;
       gap: 0.6rem;
+    }
+
+    /* Session Counter Header Badge */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .session-counter-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      color: var(--accent-cyan);
+    }
+
+    /* Rejection Callout Box */
+    .rejection-box {
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .rejection-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-rose);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .rejection-reason {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #fca5a5;
+      margin-bottom: 0.5rem;
+    }
+
+    .rejection-note {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Match Acceptance Decision Section */
+    .acceptance-panel {
+      background: rgba(10, 15, 26, 0.6);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .acceptance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .acceptance-decision-badge {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 800;
+      padding: 0.4rem 1.25rem;
+      border-radius: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .acceptance-decision-badge.accepted {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: var(--accent-emerald);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+
+    .acceptance-decision-badge.rejected {
+      background: rgba(244, 63, 94, 0.2);
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      color: var(--accent-rose);
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+    }
+
+    .score-container {
+      text-align: right;
+    }
+
+    .score-value {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .score-subtext {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Acceptance Standard & Checks */
+    .checks-section-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .check-card {
+      background: rgba(8, 12, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .check-card.pass {
+      border-left: 4px solid var(--accent-emerald);
+    }
+
+    .check-card.fail {
+      border-left: 4px solid var(--accent-rose);
+    }
+
+    .check-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .check-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    .check-status-pill {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .check-status-pill.pass {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+    }
+
+    .check-status-pill.fail {
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--accent-rose);
+    }
+
+    .check-val-row {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-cyan);
+    }
+
+    .check-reason {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Flow Diagram Panel (Raw Geometry vs Acceptance) */
+    .flow-box {
+      background: rgba(8, 12, 20, 0.4);
+      border: 1px dashed rgba(0, 240, 255, 0.25);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .flow-title {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      margin-bottom: 0.75rem;
+    }
+
+    .flow-steps {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .flow-step {
+      flex: 1;
+      min-width: 180px;
+      background: rgba(16, 23, 38, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+
+    .flow-step-num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent-purple);
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .flow-step-heading {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-bottom: 0.2rem;
+    }
+
+    .flow-step-desc {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    .flow-arrow {
+      color: var(--accent-cyan);
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    /* Results Action Bar */
+    .action-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .secondary-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .secondary-btn:hover {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
     }
 
     /* Metrics Grid */
@@ -586,9 +876,15 @@
         <div class="subtitle">Cross-Sensor Lunar Location Matching Engine</div>
       </div>
     </div>
-    <div class="status-badge" id="healthBadge">
-      <div class="status-dot"></div>
-      <span id="healthText">Connecting...</span>
+    <div class="header-right">
+      <div class="session-counter-badge" id="sessionCounterBadge">
+        <span style="font-weight:700;">TEST SESSION</span>
+        <span id="sessionCounterText">Pairs Tested: 0 | Accepted: 0 | Rejected: 0</span>
+      </div>
+      <div class="status-badge" id="healthBadge">
+        <div class="status-dot"></div>
+        <span id="healthText">Connecting...</span>
+      </div>
     </div>
   </header>
 
@@ -657,16 +953,40 @@
 
     <!-- Results & Visualizations Section -->
     <section class="glass-panel results-section" id="resultsSection">
+      <!-- Action Bar (Top of Results) -->
+      <div class="action-bar">
+        <button class="secondary-btn" id="copyDiagBtn" onclick="copyDiagnostics()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copyDiagText">Copy Diagnostics</span>
+        </button>
+        <button class="secondary-btn" onclick="resetForAnotherPair()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Test Another Pair
+        </button>
+      </div>
+
       <!-- Banner -->
       <div class="results-banner success" id="resultsBanner">
         <div class="banner-title" id="bannerTitle">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          Location Match Successful
+          LOCATION MATCH ACCEPTED
         </div>
-        <div id="bannerSub">Geometric consensus achieved</div>
+        <div id="bannerSub">Acceptance criteria satisfied</div>
       </div>
 
-      <!-- Key Metrics -->
+      <!-- Rejected Match Callout Box -->
+      <div class="rejection-box" id="rejectionBox" style="display:none;">
+        <div class="rejection-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Why was this match rejected?
+        </div>
+        <div class="rejection-reason" id="rejectionReasonText">Insufficient geometric evidence.</div>
+        <div class="rejection-note" id="rejectionNoteText">
+          RANSAC found a geometrically consistent subset, but the evidence did not satisfy the location-match acceptance standard.
+        </div>
+      </div>
+
+      <!-- 5 Key Metrics Grid -->
       <div class="metrics-grid">
         <div class="metric-card">
           <div class="metric-label">Inlier Correspondences</div>
@@ -686,7 +1006,61 @@
         <div class="metric-card">
           <div class="metric-label">Match Confidence</div>
           <div class="metric-value" id="valConfidence">0.0%</div>
-          <div class="metric-sub">Geometric Certainty</div>
+          <div class="metric-sub">Pipeline Certainty</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Spatial Coverage</div>
+          <div class="metric-value" id="valCoverage">0.0%</div>
+          <div class="metric-sub">Inlier grid coverage</div>
+        </div>
+      </div>
+
+      <!-- Match Acceptance Decision Panel -->
+      <div class="acceptance-panel" id="acceptancePanel">
+        <div class="acceptance-header">
+          <div>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.3rem;">Match Acceptance Decision</div>
+            <div class="acceptance-decision-badge accepted" id="acceptanceBadge">ACCEPTED</div>
+          </div>
+          <div class="score-container">
+            <div style="font-size:0.8rem; color:var(--text-muted);">Evidence Quality</div>
+            <div class="score-value" id="valAcceptanceScore">0.0%</div>
+            <div class="score-subtext">Acceptance Score (Deterministic evidence score — not a probability)</div>
+          </div>
+        </div>
+
+        <div class="checks-section-title">
+          <span>Acceptance Checks</span>
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;" id="acceptanceStandardSummary">Standard Thresholds: Inliers ≥10 | Ratio ≥20% | RMSE ≤3.0px | Coverage ≥15% | Conf ≥50%</span>
+        </div>
+
+        <!-- Dynamic Checks Grid -->
+        <div class="checks-grid" id="checksGrid">
+          <!-- Dynamically populated check cards -->
+        </div>
+      </div>
+
+      <!-- Raw Geometry vs Acceptance Explanation Flow -->
+      <div class="flow-box">
+        <div class="flow-title">How the Decision Works: Raw Geometry vs Location Match Acceptance</div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-num">Stage 1</div>
+            <div class="flow-step-heading">RANSAC Consensus</div>
+            <div class="flow-step-desc">Determines whether a geometrically consistent planar transformation matrix can be estimated.</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-num">Stage 2</div>
+            <div class="flow-step-heading">Match Acceptance Engine</div>
+            <div class="flow-step-desc">Evaluates amount, ratio, coverage, confidence, and transform sanity against hard evidence thresholds.</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <div class="flow-step-num">Stage 3</div>
+            <div class="flow-step-heading">Location Match Decision</div>
+            <div class="flow-step-desc">Deterministic <b>ACCEPTED</b> or <b>REJECTED</b> decision for planetary registration.</div>
+          </div>
         </div>
       </div>
 
@@ -698,6 +1072,7 @@
           <div>Rotation Angle: <span style="color:var(--accent-cyan)" id="tfRot">0.00°</span></div>
           <div>Translation X: <span style="color:var(--accent-cyan)" id="tfTx">0.00 px</span></div>
           <div>Translation Y: <span style="color:var(--accent-cyan)" id="tfTy">0.00 px</span></div>
+          <div>Transform Sanity: <span style="color:var(--accent-cyan)" id="tfSanity">VALID</span></div>
         </div>
       </div>
 
@@ -729,6 +1104,17 @@
     let fileObjB = null;
     let currentJobId = null;
     let activeVisualizations = {};
+    let lastRawResult = null;
+
+    // Test Session Stats (Frontend Only)
+    let sessionStats = { tested: 0, accepted: 0, rejected: 0 };
+
+    function updateSessionCounterDisplay() {
+      const el = document.getElementById("sessionCounterText");
+      if (el) {
+        el.textContent = `Pairs Tested: ${sessionStats.tested} | Accepted: ${sessionStats.accepted} | Rejected: ${sessionStats.rejected}`;
+      }
+    }
 
     // Initial Health Check
     async function checkHealth() {
@@ -796,7 +1182,7 @@
     }
 
     function clearFile(event, key) {
-      event.stopPropagation();
+      if (event) event.stopPropagation();
       if (key === 'A') {
         fileObjA = null;
         document.getElementById('fileA').value = '';
@@ -933,6 +1319,7 @@
         const data = await res.json();
 
         if (data.result) {
+          lastRawResult = data.result;
           displayResults(data.result, data.visualizations);
         }
       } catch (err) {
@@ -943,40 +1330,84 @@
     }
 
     function displayResults(res, viz) {
+      // Update Session Counter
+      sessionStats.tested++;
+      if (res.matched) {
+        sessionStats.accepted++;
+      } else {
+        sessionStats.rejected++;
+      }
+      updateSessionCounterDisplay();
+
       document.getElementById("resultsSection").style.display = "block";
       document.getElementById("resultsSection").scrollIntoView({ behavior: 'smooth' });
 
       const banner = document.getElementById("resultsBanner");
       const bTitle = document.getElementById("bannerTitle");
       const bSub = document.getElementById("bannerSub");
+      const rejBox = document.getElementById("rejectionBox");
 
-      if (res.matched) {
+      const hasAcceptance = res.acceptance != null;
+
+      if (res.matched === true) {
         banner.className = "results-banner success";
-        bTitle.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Location Match Successful`;
-        bSub.textContent = "Geometric consensus achieved via hybrid RANSAC";
+        bTitle.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> LOCATION MATCH ACCEPTED`;
+        bSub.textContent = "Acceptance criteria satisfied";
+        rejBox.style.display = "none";
+      } else if (hasAcceptance && res.acceptance.status === "REJECTED") {
+        banner.className = "results-banner rejected";
+        bTitle.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> LOCATION MATCH REJECTED`;
+        bSub.textContent = res.acceptance.reason || "Acceptance criteria not satisfied";
+
+        rejBox.style.display = "block";
+        document.getElementById("rejectionReasonText").textContent = res.acceptance.reason || "Insufficient geometric evidence.";
+        document.getElementById("rejectionNoteText").textContent = "RANSAC found a geometrically consistent subset, but the evidence did not satisfy the location-match acceptance standard.";
       } else {
+        // Backward compatibility fallback
         banner.className = "results-banner uncertain";
         bTitle.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Match Uncertain / No Consensus`;
         bSub.textContent = res.failure_reason || "Insufficient spatial inliers for registration";
+        rejBox.style.display = "none";
       }
 
-      document.getElementById("valInliers").textContent = res.inliers;
-      document.getElementById("subCorrs").textContent = `Total Candidate Ties: ${res.correspondences}`;
-      document.getElementById("valRatio").textContent = `${(res.inlier_ratio * 100).toFixed(1)}%`;
-      document.getElementById("valRmse").textContent = res.rmse ? `${res.rmse.toFixed(2)} px` : 'N/A';
+      // Populate 5 Key Metrics
+      document.getElementById("valInliers").textContent = res.inliers != null ? res.inliers : 0;
+      document.getElementById("subCorrs").textContent = `Total Candidate Ties: ${res.correspondences != null ? res.correspondences : 0}`;
+      document.getElementById("valRatio").textContent = res.inlier_ratio != null ? `${(res.inlier_ratio * 100).toFixed(1)}%` : 'N/A';
+      document.getElementById("valRmse").textContent = res.rmse != null ? `${res.rmse.toFixed(2)} px` : 'N/A';
       document.getElementById("valQuality").textContent = res.quality || 'N/A';
-      document.getElementById("valConfidence").textContent = `${(res.confidence * 100).toFixed(1)}%`;
+      document.getElementById("valConfidence").textContent = res.confidence != null ? `${(res.confidence * 100).toFixed(1)}%` : 'N/A';
+      
+      const covVal = res.coverage != null ? res.coverage : (res.acceptance?.checks?.minimum_coverage?.value != null ? res.acceptance.checks.minimum_coverage.value : null);
+      document.getElementById("valCoverage").textContent = covVal != null ? `${(covVal * 100).toFixed(1)}%` : 'N/A';
 
+      // Match Acceptance Decision Badge & Score
+      const badgeEl = document.getElementById("acceptanceBadge");
+      const isAccepted = hasAcceptance ? res.acceptance.accepted : res.matched;
+      badgeEl.textContent = isAccepted ? "ACCEPTED" : "REJECTED";
+      badgeEl.className = `acceptance-decision-badge ${isAccepted ? "accepted" : "rejected"}`;
+
+      const scoreVal = res.acceptance?.acceptance_score != null ? (res.acceptance.acceptance_score * 100).toFixed(1) : (res.confidence != null ? (res.confidence * 100).toFixed(1) : 'N/A');
+      document.getElementById("valAcceptanceScore").textContent = scoreVal !== 'N/A' ? `${scoreVal}%` : 'N/A';
+
+      // Render Dynamic Acceptance Checks
+      renderAcceptanceChecks(res.acceptance?.checks);
+
+      // Transform Details
       if (res.transform) {
-        document.getElementById("tfScale").textContent = res.transform.scale.toFixed(4);
-        document.getElementById("tfRot").textContent = `${res.transform.rotation_deg.toFixed(2)}°`;
-        document.getElementById("tfTx").textContent = `${res.transform.translation.x.toFixed(2)} px`;
-        document.getElementById("tfTy").textContent = `${res.transform.translation.y.toFixed(2)} px`;
+        document.getElementById("tfScale").textContent = res.transform.scale != null ? res.transform.scale.toFixed(4) : "N/A";
+        document.getElementById("tfRot").textContent = res.transform.rotation_deg != null ? `${res.transform.rotation_deg.toFixed(2)}°` : "N/A";
+        document.getElementById("tfTx").textContent = res.transform.translation?.x != null ? `${res.transform.translation.x.toFixed(2)} px` : "N/A";
+        document.getElementById("tfTy").textContent = res.transform.translation?.y != null ? `${res.transform.translation.y.toFixed(2)} px` : "N/A";
+        
+        const sanityPassed = res.acceptance?.checks?.transform_sanity?.passed;
+        document.getElementById("tfSanity").textContent = sanityPassed === true ? "VALID (Finite, Positive Scale)" : (sanityPassed === false ? "INVALID (Non-finite/Scale ≤ 0)" : "VALID");
       } else {
         document.getElementById("tfScale").textContent = "N/A";
         document.getElementById("tfRot").textContent = "N/A";
         document.getElementById("tfTx").textContent = "N/A";
         document.getElementById("tfTy").textContent = "N/A";
+        document.getElementById("tfSanity").textContent = "N/A";
       }
 
       // Store visualization asset URLs
@@ -990,6 +1421,121 @@
         };
         switchTab('correspondence');
       }
+    }
+
+    function renderAcceptanceChecks(checks) {
+      const container = document.getElementById("checksGrid");
+      container.innerHTML = "";
+
+      if (!checks || Object.keys(checks).length === 0) {
+        container.innerHTML = `<div style="grid-column: 1/-1; color: var(--text-muted); font-size: 0.85rem; font-style: italic;">No individual acceptance check details returned for this run.</div>`;
+        return;
+      }
+
+      const checkNameMap = {
+        minimum_inliers: "Minimum Inliers",
+        minimum_inlier_ratio: "Inlier Ratio",
+        maximum_rmse: "Reprojection RMSE",
+        minimum_coverage: "Spatial Coverage",
+        minimum_confidence: "Match Confidence",
+        transform_sanity: "Transform Sanity"
+      };
+
+      for (const [key, chk] of Object.entries(checks)) {
+        if (!chk) continue;
+        const name = checkNameMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const passed = chk.passed === true;
+
+        let formattedVal = "";
+        let formattedThresh = "";
+
+        if (key === "minimum_inliers") {
+          formattedVal = `${chk.value != null ? chk.value : 0}`;
+          formattedThresh = `${chk.threshold != null ? chk.threshold : 10} min`;
+        } else if (key === "minimum_inlier_ratio") {
+          formattedVal = chk.value != null ? `${(chk.value * 100).toFixed(1)}%` : "0.0%";
+          formattedThresh = chk.threshold != null ? `${(chk.threshold * 100).toFixed(1)}% min` : "20.0% min";
+        } else if (key === "maximum_rmse") {
+          formattedVal = chk.value != null ? `${Number(chk.value).toFixed(2)} px` : "N/A";
+          formattedThresh = chk.threshold != null ? `${Number(chk.threshold).toFixed(2)} px max` : "3.00 px max";
+        } else if (key === "minimum_coverage") {
+          formattedVal = chk.value != null ? `${(chk.value * 100).toFixed(1)}%` : "0.0%";
+          formattedThresh = chk.threshold != null ? `${(chk.threshold * 100).toFixed(1)}% min` : "15.0% min";
+        } else if (key === "minimum_confidence") {
+          formattedVal = chk.value != null ? `${(chk.value * 100).toFixed(1)}%` : "0.0%";
+          formattedThresh = chk.threshold != null ? `${(chk.threshold * 100).toFixed(1)}% min` : "50.0% min";
+        } else if (key === "transform_sanity") {
+          formattedVal = chk.value === true ? "Finite / positive scale" : "Invalid transform";
+          formattedThresh = "Finite + scale > 0";
+        } else {
+          formattedVal = `${chk.value}`;
+          formattedThresh = chk.threshold != null ? `${chk.threshold}` : "";
+        }
+
+        const card = document.createElement("div");
+        card.className = `check-card ${passed ? "pass" : "fail"}`;
+        card.innerHTML = `
+          <div class="check-header">
+            <span class="check-name">${name}</span>
+            <span class="check-status-pill ${passed ? "pass" : "fail"}">${passed ? "PASS" : "FAIL"}</span>
+          </div>
+          <div class="check-val-row">
+            ${formattedVal} <span style="color:var(--text-muted); font-size:0.75rem;">/ ${formattedThresh}</span>
+          </div>
+          ${chk.reason ? `<div class="check-reason">${chk.reason}</div>` : ""}
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    // Copy Diagnostics to Clipboard
+    async function copyDiagnostics() {
+      const btnText = document.getElementById("copyDiagText");
+      if (!lastRawResult) {
+        alert("No match result available to copy.");
+        return;
+      }
+
+      const diagPayload = {
+        job_id: currentJobId,
+        matched: lastRawResult.matched,
+        acceptance: lastRawResult.acceptance,
+        inliers: lastRawResult.inliers,
+        correspondences: lastRawResult.correspondences,
+        inlier_ratio: lastRawResult.inlier_ratio,
+        rmse: lastRawResult.rmse,
+        coverage: lastRawResult.coverage,
+        confidence: lastRawResult.confidence,
+        quality: lastRawResult.quality,
+        transform: lastRawResult.transform,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(diagPayload, null, 2));
+        if (btnText) btnText.textContent = "Copied!";
+        setTimeout(() => {
+          if (btnText) btnText.textContent = "Copy Diagnostics";
+        }, 2000);
+      } catch (err) {
+        alert("Failed to copy to clipboard. See console.");
+        console.log("Diagnostics JSON:", diagPayload);
+      }
+    }
+
+    // Test Another Pair (Reset Form Without Reloading Page)
+    function resetForAnotherPair() {
+      clearFile(null, 'A');
+      clearFile(null, 'B');
+      currentJobId = null;
+      activeVisualizations = {};
+
+      document.getElementById("resultsSection").style.display = "none";
+      document.getElementById("progressSection").style.display = "none";
+      document.getElementById("consoleBox").innerHTML = "";
+      document.getElementById("matchBtn").disabled = true;
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function switchTab(key) {

@@ -35,6 +35,16 @@ class TransformSchema(BaseModel):
     translation: TranslationSchema = Field(..., description="Translation offset")
 
 
+class MatchAcceptanceSchema(BaseModel):
+    """Detailed Match Acceptance Engine evaluation decision."""
+    accepted: bool = Field(..., description="Boolean indicating whether location match criteria passed")
+    status: str = Field(..., description="Status classification ('ACCEPTED' or 'REJECTED')")
+    reason: str = Field(..., description="Human-readable summary explanation of decision")
+    acceptance_score: float = Field(0.0, description="Evidence quality score in [0.0, 1.0]")
+    checks: Dict[str, Dict[str, Any]] = Field(default_factory=dict, description="Criterion checks breakdown")
+    metrics: Dict[str, Any] = Field(default_factory=dict, description="Input metrics evaluated")
+
+
 class MatchResultSummary(BaseModel):
     """
     JSON-serializable summary of hybrid matching and registration results.
@@ -51,6 +61,7 @@ class MatchResultSummary(BaseModel):
     coverage: float = Field(0.0, description="Spatial grid occupancy coverage in [0.0, 1.0]")
     quality: str = Field("FAILED", description="Quality classification ('EXCELLENT', 'GOOD', 'FAIR', 'POOR', 'FAILED')")
     transform: Optional[TransformSchema] = Field(None, description="Estimated Similarity transformation (None if failed)")
+    acceptance: Optional[MatchAcceptanceSchema] = Field(None, description="Match Acceptance Engine detailed decision breakdown")
     failure_reason: Optional[str] = Field(None, description="Diagnostic explanation if matched=False")
 
 

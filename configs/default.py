@@ -309,6 +309,33 @@ class Config:
         "refine_inliers": True,
     }
 
+    # -- Match Acceptance Engine Configuration --------------------------------
+    MATCH_ACCEPTANCE = {
+        # Whether Match Acceptance Engine is enabled
+        "enabled": True,
+
+        # Absolute minimum required RANSAC inliers for location match acceptance
+        "minimum_inliers": 10,
+
+        # Minimum required inlier ratio (inliers / candidate correspondences)
+        "minimum_inlier_ratio": 0.20,
+
+        # Maximum allowed reprojection RMSE in pixels
+        "maximum_rmse_px": 3.0,
+
+        # Minimum required spatial grid occupancy coverage in [0.0, 1.0]
+        "minimum_coverage": 0.15,
+
+        # Minimum required pipeline confidence score in [0.0, 1.0]
+        "minimum_confidence": 0.50,
+
+        # Whether to enforce finite numerical transform parameters (non-NaN, non-Inf)
+        "require_finite_transform": True,
+
+        # Whether to enforce positive isotropic scale factor (> 0)
+        "require_positive_scale": True,
+    }
+
     # -- Milestone B (Phase 15): Uniform Tie-Point Selection ------------------
     TIE_POINT_SELECTION = {
         # Whether uniform tie-point selection is enabled

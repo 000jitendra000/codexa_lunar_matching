@@ -23,6 +23,7 @@ from api.schemas import (
     MatchResultSummary,
     TransformSchema,
     TranslationSchema,
+    MatchAcceptanceSchema,
     JobStatusResponse,
     ProgressEventSchema,
     VisualizationSchema,
@@ -242,6 +243,22 @@ class JobManager:
         inliers = int(len(hybrid_res.inlier_indices))
         ratio = round(float(hybrid_res.inlier_ratio), 4)
 
+        # Build acceptance schema if available
+        acc_schema: Optional[MatchAcceptanceSchema] = None
+        if hybrid_res.acceptance is not None:
+            acc_dict = hybrid_res.acceptance.to_dict()
+            try:
+                acc_schema = MatchAcceptanceSchema(
+                    accepted=acc_dict["accepted"],
+                    status=acc_dict["status"],
+                    reason=acc_dict["reason"],
+                    acceptance_score=acc_dict["acceptance_score"],
+                    checks=acc_dict.get("checks", {}),
+                    metrics=acc_dict.get("metrics", {}),
+                )
+            except Exception as acc_err:
+                logger.warning("Failed to format acceptance schema: %s", acc_err)
+
         # Transform extraction
         tf_obj = reg_res.transform if (reg_res is not None and reg_res.transform is not None) else hybrid_res.transform
         tf_schema: Optional[TransformSchema] = None
@@ -258,7 +275,7 @@ class JobManager:
             except Exception as tf_err:
                 logger.warning("Failed to format transform schema: %s", tf_err)
 
-        if reg_res is not None and reg_res.success:
+        if reg_res is not None and reg_res.success and matched:
             return MatchResultSummary(
                 matched=True,
                 correspondences=corrs,
@@ -272,6 +289,7 @@ class JobManager:
                 coverage=round(float(reg_res.coverage), 4),
                 quality=str(reg_res.quality),
                 transform=tf_schema,
+                acceptance=acc_schema,
                 failure_reason=None,
             )
 
@@ -285,11 +303,16 @@ class JobManager:
                 coverage=0.0,
                 quality="GOOD" if ratio > 0.3 else "FAIR",
                 transform=tf_schema,
+                acceptance=acc_schema,
                 failure_reason=None,
             )
 
-        # Unmatched / Geometrically failed case
-        reason = hybrid_res.metadata.get("reason") or "Insufficient geometric inliers during RANSAC verification."
+        # Unmatched / Geometrically failed / Acceptance rejected case
+        reason = (
+            hybrid_res.acceptance.reason
+            if (hybrid_res.acceptance is not None and hybrid_res.acceptance.reason)
+            else (hybrid_res.metadata.get("reason") or "Insufficient geometric inliers during RANSAC verification.")
+        )
         return MatchResultSummary(
             matched=False,
             correspondences=corrs,
@@ -299,5 +322,6 @@ class JobManager:
             coverage=0.0,
             quality="FAILED",
             transform=None,
+            acceptance=acc_schema,
             failure_reason=reason,
         )
