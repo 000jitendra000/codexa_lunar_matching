@@ -217,27 +217,52 @@ def inject_css():
     .hero-title .accent { color: var(--accent-cyan); }
     .lede { color: var(--text-muted); font-size: 1.02rem; line-height: 1.6; max-width: 56ch; }
 
-    /* Streamlit widget restyling */
-    .stButton>button[kind="primary"] {
+    /* Streamlit Primary Button Styling */
+    button[data-testid="stBaseButton-primary"],
+    .stButton>button[kind="primary"],
+    .stButton>button[data-testid="stBaseButton-primary"] {
         background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)) !important;
-        border: none !important; font-family: var(--font-heading) !important; font-weight: 600 !important;
+        border: 1px solid transparent !important;
+        font-family: var(--font-heading) !important;
+        font-weight: 600 !important;
         box-shadow: 0 6px 18px rgba(8, 145, 178, .28) !important;
         color: #ffffff !important;
         border-radius: 11px !important;
         padding: .85rem 1.7rem !important;
     }
-    .stButton>button[kind="primary"]:hover {
-        box-shadow: 0 8px 22px rgba(8, 145, 178, .4) !important;
+
+    button[data-testid="stBaseButton-primary"] *,
+    .stButton>button[kind="primary"] * {
         color: #ffffff !important;
     }
 
-    /* Secondary / default buttons — fix solid black box issue */
-    .stButton>button:not([kind="primary"]),
-    button[kind="secondary"],
-    [data-testid="stBaseButton-secondary"],
+    button[data-testid="stBaseButton-primary"]:hover,
+    button[data-testid="stBaseButton-primary"]:focus,
+    button[data-testid="stBaseButton-primary"]:active,
+    .stButton>button[kind="primary"]:hover,
+    .stButton>button[kind="primary"]:focus,
+    .stButton>button[kind="primary"]:active {
+        background: linear-gradient(135deg, #0e7490, #6d28d9) !important;
+        border: 1px solid transparent !important;
+        color: #ffffff !important;
+        box-shadow: 0 8px 22px rgba(8, 145, 178, .45) !important;
+    }
+
+    button[data-testid="stBaseButton-primary"]:hover *,
+    button[data-testid="stBaseButton-primary"]:focus *,
+    button[data-testid="stBaseButton-primary"]:active *,
+    .stButton>button[kind="primary"]:hover *,
+    .stButton>button[kind="primary"]:focus *,
+    .stButton>button[kind="primary"]:active * {
+        color: #ffffff !important;
+    }
+
+    /* Streamlit Secondary / Default Buttons */
+    button[data-testid="stBaseButton-secondary"],
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]),
     div[data-testid="stFileUploader"] button,
-    button[data-baseweb="button"] {
-        background: #ffffff !important;
+    button[data-baseweb="button"]:not([kind="primary"]) {
+        background-color: #ffffff !important;
         color: #0f172a !important;
         border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
@@ -245,13 +270,45 @@ def inject_css():
         font-weight: 600 !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
     }
-    .stButton>button:not([kind="primary"]):hover,
-    button[kind="secondary"]:hover,
-    [data-testid="stBaseButton-secondary"]:hover,
-    div[data-testid="stFileUploader"] button:hover {
-        background: #f8fafc !important;
+
+    button[data-testid="stBaseButton-secondary"] *,
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) *,
+    div[data-testid="stFileUploader"] button *,
+    button[data-baseweb="button"]:not([kind="primary"]) * {
+        color: #0f172a !important;
+    }
+
+    button[data-testid="stBaseButton-secondary"]:hover,
+    button[data-testid="stBaseButton-secondary"]:focus,
+    button[data-testid="stBaseButton-secondary"]:active,
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover,
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):focus,
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):active,
+    div[data-testid="stFileUploader"] button:hover,
+    div[data-testid="stFileUploader"] button:focus,
+    div[data-testid="stFileUploader"] button:active,
+    button[data-baseweb="button"]:not([kind="primary"]):hover,
+    button[data-baseweb="button"]:not([kind="primary"]):focus,
+    button[data-baseweb="button"]:not([kind="primary"]):active {
+        background-color: #f1f5f9 !important;
         color: #0284c7 !important;
         border-color: #0284c7 !important;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+    }
+
+    button[data-testid="stBaseButton-secondary"]:hover *,
+    button[data-testid="stBaseButton-secondary"]:focus *,
+    button[data-testid="stBaseButton-secondary"]:active *,
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover *,
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):focus *,
+    .stButton>button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):active *,
+    div[data-testid="stFileUploader"] button:hover *,
+    div[data-testid="stFileUploader"] button:focus *,
+    div[data-testid="stFileUploader"] button:active *,
+    button[data-baseweb="button"]:not([kind="primary"]):hover *,
+    button[data-baseweb="button"]:not([kind="primary"]):focus *,
+    button[data-baseweb="button"]:not([kind="primary"]):active * {
+        color: #0284c7 !important;
     }
 
     /* File uploader high contrast text */
