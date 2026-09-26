@@ -93,6 +93,19 @@ def inject_css():
 
     html, body, [class*="css"] { font-family: var(--font-body); color: var(--text-main); }
 
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        overflow-x: hidden !important;
+    }
+
+    .main .block-container, [data-testid="stMainBlockContainer"] {
+        max-width: 1200px !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        padding-top: 1.5rem !important;
+        padding-bottom: 2rem !important;
+        margin: 0 auto !important;
+    }
+
     .stApp, [data-testid="stAppViewContainer"] {
         background-color: var(--bg) !important;
         background-image: linear-gradient(var(--bg-topo) 1px, transparent 1px),
@@ -119,20 +132,21 @@ def inject_css():
         padding: .5rem 1rem 1.25rem; flex-wrap: wrap; gap: .8rem;
         border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
     }
-    .codexa-brand { display: flex; align-items: center; gap: .7rem; text-decoration: none; }
+    .codexa-brand { display: flex; align-items: center; gap: .7rem; text-decoration: none !important; color: inherit !important; }
+    .codexa-brand:hover { text-decoration: none !important; }
     .moon-icon {
         width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
         background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
         display: flex; align-items: center; justify-content: center;
         box-shadow: 0 4px 14px rgba(8, 145, 178, .35); font-size: 16px;
     }
-    .codexa-brand-name { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: var(--text-main); }
-    .codexa-brand-sub { font-size: .68rem; color: var(--text-muted); }
+    .codexa-brand-name { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: var(--text-main) !important; }
+    .codexa-brand-sub { font-size: .68rem; color: var(--text-muted) !important; }
 
     .nav-links { display: flex; align-items: center; gap: 1.5rem; }
-    .nav-link { color: var(--text-muted); text-decoration: none; font-size: .88rem; font-weight: 500; transition: color .2s; }
-    .nav-link:hover { color: var(--accent-cyan); }
-    .nav-link.current { color: var(--text-main); font-weight: 700; }
+    .nav-link { color: var(--text-muted) !important; text-decoration: none !important; font-size: .88rem; font-weight: 500; transition: color .2s; cursor: pointer; }
+    .nav-link:hover { color: var(--accent-cyan) !important; text-decoration: none !important; }
+    .nav-link.current { color: var(--accent-cyan) !important; font-weight: 700; border-bottom: 2px solid var(--accent-cyan); padding-bottom: 2px; }
 
     .header-right { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
     .pill { display: inline-flex; align-items: center; gap: .4rem; padding: .32rem .75rem; border-radius: 9999px;
@@ -214,15 +228,76 @@ def inject_css():
     }
     .stButton>button[kind="primary"]:hover {
         box-shadow: 0 8px 22px rgba(8, 145, 178, .4) !important;
+        color: #ffffff !important;
     }
+
+    /* Secondary / default buttons — fix solid black box issue */
+    .stButton>button:not([kind="primary"]),
+    button[kind="secondary"],
+    [data-testid="stBaseButton-secondary"],
+    div[data-testid="stFileUploader"] button,
+    button[data-baseweb="button"] {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        font-family: var(--font-body) !important;
+        font-weight: 600 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+    .stButton>button:not([kind="primary"]):hover,
+    button[kind="secondary"]:hover,
+    [data-testid="stBaseButton-secondary"]:hover,
+    div[data-testid="stFileUploader"] button:hover {
+        background: #f8fafc !important;
+        color: #0284c7 !important;
+        border-color: #0284c7 !important;
+    }
+
+    /* File uploader high contrast text */
     [data-testid="stFileUploaderDropzone"] {
         border: 2px dashed var(--border-strong) !important; background: var(--surface-alt) !important;
         border-radius: 12px !important; padding: 1.5rem !important;
     }
     [data-testid="stFileUploaderDropzone"]:hover { border-color: var(--accent-cyan) !important; background: var(--accent-cyan-soft) !important; }
+    [data-testid="stFileUploaderDropzoneInstructions"],
+    [data-testid="stFileUploaderDropzoneInstructions"] *,
+    [data-testid="stFileUploader"] label,
+    [data-testid="stFileUploader"] small,
+    [data-testid="stFileUploader"] p,
+    [data-testid="stFileUploader"] span {
+        color: #334155 !important;
+        font-weight: 500 !important;
+    }
+
+    .session-counter-badge {
+        display: inline-flex; align-items: center; gap: .6rem; padding: .45rem .9rem; border-radius: 9999px;
+        font-size: .78rem; font-family: var(--font-mono); background: var(--accent-cyan-soft); border: 1px solid #bfe1ea; color: var(--accent-cyan);
+        white-space: nowrap; line-height: 1.4;
+    }
+
     [data-testid="stMetricValue"] { font-family: var(--font-heading) !important; color: var(--accent-cyan) !important; }
     [data-testid="stMetricLabel"] { font-family: var(--font-body) !important; color: var(--text-muted) !important; }
     div[data-testid="stExpander"] { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; }
+
+    /* Image display sizing & centering for UI */
+    [data-testid="stImage"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin-bottom: 0.5rem !important;
+    }
+    [data-testid="stImage"] img {
+        max-height: 450px !important;
+        width: auto !important;
+        object-fit: contain !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+    }
+    div[data-testid="stExpander"] [data-testid="stImage"] img {
+        max-height: 85vh !important;
+    }
     """
     clean_css = " ".join(css_content.split())
     st.markdown(f"<style>{clean_css}</style>", unsafe_allow_html=True)
@@ -234,7 +309,7 @@ def render_topnav(current: str = "Home"):
     c_results = "current" if current == "Results" else ""
     
     html = f"""<div class="codexa-topnav">
-  <div class="codexa-brand">
+  <a href="./" target="_self" class="codexa-brand">
     <div class="moon-icon">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ffffff" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
     </div>
@@ -242,11 +317,11 @@ def render_topnav(current: str = "Home"):
       <div class="codexa-brand-name">Codexa</div>
       <div class="codexa-brand-sub">Lunar Match &amp; Register</div>
     </div>
-  </div>
+  </a>
   <div class="nav-links">
-    <span class="nav-link {c_home}">About the model</span>
-    <span class="nav-link {c_engine}">Match Engine</span>
-    <span class="nav-link {c_results}">Last results ↗</span>
+    <a href="./" target="_self" class="nav-link {c_home}">About the model</a>
+    <a href="./Match_Engine" target="_self" class="nav-link {c_engine}">Match Engine</a>
+    <a href="./Results" target="_self" class="nav-link {c_results}">Last results ↗</a>
   </div>
 </div>"""
     st.markdown(html, unsafe_allow_html=True)

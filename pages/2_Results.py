@@ -300,7 +300,5 @@ if sel_key:
     path = viz_paths.get(sel_key)
     if path and os.path.exists(str(path)):
         st.image(str(path), use_container_width=True)
-        with st.expander("🔍 View full resolution"):
-            st.image(str(path))
     else:
         st.info("This asset was not returned for the current run.")

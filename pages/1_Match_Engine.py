@@ -113,7 +113,6 @@ with top_r:
 
 st.markdown("---")
 
-st.markdown('<div class="codexa-panel">', unsafe_allow_html=True)
 st.markdown('<h3 class="codexa-heading">1. Select Orbital Image Pair</h3>', unsafe_allow_html=True)
 
 col_a, col_b = st.columns(2, gap="medium")
@@ -147,7 +146,6 @@ match_button = st.button(
     disabled=not both_uploaded,
     use_container_width=True,
 )
-st.markdown("</div>", unsafe_allow_html=True)
 
 if "executing_match" not in st.session_state:
     st.session_state["executing_match"] = False

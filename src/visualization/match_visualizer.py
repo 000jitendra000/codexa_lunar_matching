@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 from src.matching.hybrid_matcher import HybridMatchResult
+from src.matching.transformation import SimilarityTransform2D
 from src.registration.registration_engine import RegistrationResult
 from src.visualization.confidence_map import generate_confidence_map
 from src.visualization.correspondence_plot import plot_correspondences
@@ -223,27 +224,29 @@ class MatchVisualizer:
         except Exception as exc:
             logger.warning("Failed to generate correspondence_image: %s", exc, exc_info=True)
 
-        # 4. Generate Registration Overlay & Checkerboard (if transform is available)
-        if transform is not None:
-            try:
-                overlay_rgb, checker_rgb = generate_registration_overlay(
-                    image_a=image_a,
-                    image_b=image_b,
-                    transform=transform,
-                    config=self.config,
-                )
-                path_ov = os.path.join(target_dir, "registration_overlay.png")
-                if cv2.imwrite(path_ov, cv2.cvtColor(overlay_rgb, cv2.COLOR_RGB2BGR)):
-                    res.registration_overlay = path_ov
-                del overlay_rgb
+        # 4. Generate Registration Overlay & Checkerboard (always generate, fallback to identity transform if None)
+        try:
+            eff_transform = transform if transform is not None else SimilarityTransform2D(
+                scale=1.0, rotation_rad=0.0, translation_x=0.0, translation_y=0.0
+            )
+            overlay_rgb, checker_rgb = generate_registration_overlay(
+                image_a=image_a,
+                image_b=image_b,
+                transform=eff_transform,
+                config=self.config,
+            )
+            path_ov = os.path.join(target_dir, "registration_overlay.png")
+            if cv2.imwrite(path_ov, cv2.cvtColor(overlay_rgb, cv2.COLOR_RGB2BGR)):
+                res.registration_overlay = path_ov
+            del overlay_rgb
 
-                if checker_rgb is not None:
-                    path_ck = os.path.join(target_dir, "checkerboard.png")
-                    if cv2.imwrite(path_ck, cv2.cvtColor(checker_rgb, cv2.COLOR_RGB2BGR)):
-                        res.checkerboard = path_ck
-                    del checker_rgb
-            except Exception as exc:
-                logger.warning("Failed to generate registration_overlay: %s", exc, exc_info=True)
+            if checker_rgb is not None:
+                path_ck = os.path.join(target_dir, "checkerboard.png")
+                if cv2.imwrite(path_ck, cv2.cvtColor(checker_rgb, cv2.COLOR_RGB2BGR)):
+                    res.checkerboard = path_ck
+                del checker_rgb
+        except Exception as exc:
+            logger.warning("Failed to generate registration_overlay: %s", exc, exc_info=True)
 
         gc.collect()
 
