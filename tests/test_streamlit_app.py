@@ -13,7 +13,15 @@ from unittest.mock import MagicMock, patch
 import cv2
 import numpy as np
 
-from streamlit_app import decode_uploaded_image, format_match_result, get_matcher
+import importlib.util
+_spec = importlib.util.spec_from_file_location("match_engine_module", os.path.join(os.path.dirname(__file__), "..", "pages", "1_Match_Engine.py"))
+match_engine_module = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(match_engine_module)
+
+decode_uploaded_image = match_engine_module.decode_uploaded_image
+format_match_result = match_engine_module.format_match_result
+get_matcher = match_engine_module.get_matcher
+
 from src.matching.hybrid_matcher import HybridMatchResult, HybridMatcher
 from src.matching.match_acceptance import MatchAcceptanceResult
 from src.matching.transformation import SimilarityTransform2D
@@ -141,7 +149,7 @@ class TestStreamlitAppHelpers(unittest.TestCase):
         self.assertAlmostEqual(result_dict["acceptance_score"], 0.0)
         self.assertIsNone(result_dict["transform"])
 
-    @patch("streamlit_app.HybridMatcher")
+    @patch.object(match_engine_module, "HybridMatcher")
     def test_get_matcher_caching(self, mock_matcher_cls):
         """Test get_matcher returns instance created by HybridMatcher."""
         mock_instance = MagicMock()

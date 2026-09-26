@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Overlay | Codexa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+
+<body>
+
+    <div class="topnav">
+        <a class="brand" href="index.html">
+            <div class="moon-icon"><svg viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg></div>
+            <div>
+                <div class="brand-name">Codexa</div>
+                <div class="brand-sub">Lunar Match &amp; Register</div>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">About the model</a>
+            <a href="app.html">Match Engine</a>
+            <a href="results.html">Results</a>
+        </div>
+    </div>
+
+    <main id="mainContent" style="max-width:1200px;width:100%;">
+        <!-- Populated by JS, or replaced with an empty state -->
+    </main>
+
+    <script src="assets/common.js"></script>
+    <script>
+        const KEY = "overlay";
+        const payload = CODEXA.loadResult();
+        const main = document.getElementById("mainContent");
+        const idx = CODEXA.VIZ_PAGES.findIndex(p => p.key === KEY);
+        const prevPage = CODEXA.VIZ_PAGES[(idx - 1 + CODEXA.VIZ_PAGES.length) % CODEXA.VIZ_PAGES.length];
+        const nextPage = CODEXA.VIZ_PAGES[(idx + 1) % CODEXA.VIZ_PAGES.length];
+        const thisPage = CODEXA.VIZ_PAGES[idx];
+
+        if (!payload) {
+            main.innerHTML = `
+        <section class="panel empty-state">
+          <h3>No match result to show yet</h3>
+          <p>Run a pair of images through the engine first, then come back to inspect this view.</p>
+          <div style="margin-top:1.5rem;"><a href="app.html" class="btn-primary">Go to Match Engine</a></div>
+        </section>`;
+        } else {
+            const url = CODEXA.vizUrl(payload, KEY);
+            main.innerHTML = `
+        <div class="panel viz-detail-panel">
+          <div class="viz-detail-head">
+            <div>
+              <div class="viz-detail-title">${thisPage.label}</div>
+              <div class="viz-detail-desc">${thisPage.short}</div>
+            </div>
+            <div class="viz-pager">
+              <a class="btn-secondary" href="${prevPage.file}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                ${prevPage.label}
+              </a>
+              <a class="btn-secondary" href="${nextPage.file}">
+                ${nextPage.label}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="viz-stage">
+            ${url
+                    ? `<img id="vizImg" class="viz-display-img" src="${url}" alt="${thisPage.label}" onclick="openModal('${url}')">`
+                    : `<div class="viz-empty">This asset was not returned for the current run.</div>`}
+          </div>
+          ${url ? `<div class="viz-caption">Click the image to inspect it full resolution</div>` : ""}
+        </div>
+        <div style="margin-top:1.5rem;">
+          <a class="btn-ghost" href="results.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to results overview
+          </a>
+        </div>
+
+        <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+          <img id="modalImg" class="modal-img" alt="Full Resolution Asset">
+        </div>
+      `;
+        }
+
+        function openModal(src) {
+            document.getElementById("modalImg").src = src;
+            document.getElementById("modalOverlay").style.display = "flex";
+        }
+        function closeModal() {
+            document.getElementById("modalOverlay").style.display = "none";
+        }
+    </script>
+</body>
+
+</html>

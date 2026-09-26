@@ -22,7 +22,6 @@ from src.crater_graph.features import (
     get_adjacency_matrix,
     get_pairwise_distance_matrix,
 )
-from src.crater_graph.visualization import draw_crater_graph
 from src.crater_graph.invariants import (
     wrap_angle_pi,
     LocalCraterDescriptor,
@@ -33,6 +32,13 @@ from src.crater_graph.invariants import (
     build_triangle_descriptor,
     build_triangle_descriptors,
 )
+
+
+def __getattr__(name: str):
+    if name == "draw_crater_graph":
+        from src.crater_graph.visualization import draw_crater_graph
+        return draw_crater_graph
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 from src.crater_graph.constellation_matcher import (
     ConstellationMatch,
     ConstellationMatchResult,

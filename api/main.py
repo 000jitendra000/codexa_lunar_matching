@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.matching.hybrid_matcher import HybridMatcher
 from src.registration.registration_engine import RegistrationEngine
@@ -86,10 +87,60 @@ def create_app() -> FastAPI:
     # Register API routes
     app.include_router(router)
 
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    assets_dir = os.path.join(root_dir, "assets")
+
+    # Mount static assets folder for CSS & JS dependencies
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
     @app.get("/", include_in_schema=False)
-    async def serve_frontend():
-        frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Lunar_matching_frontend.html")
-        return FileResponse(frontend_path)
+    @app.get("/index", include_in_schema=False)
+    @app.get("/index.html", include_in_schema=False)
+    async def serve_index():
+        return FileResponse(os.path.join(root_dir, "index.html"))
+
+    @app.get("/app", include_in_schema=False)
+    @app.get("/app.html", include_in_schema=False)
+    async def serve_app():
+        return FileResponse(os.path.join(root_dir, "app.html"))
+
+    @app.get("/results", include_in_schema=False)
+    @app.get("/results.html", include_in_schema=False)
+    @app.get("/Results.html", include_in_schema=False)
+    async def serve_results():
+        return FileResponse(os.path.join(root_dir, "Results.html"))
+
+    @app.get("/results-correspondence", include_in_schema=False)
+    @app.get("/results-correspondence.html", include_in_schema=False)
+    async def serve_results_correspondence():
+        return FileResponse(os.path.join(root_dir, "results-correspondence.html"))
+
+    @app.get("/results-overlay", include_in_schema=False)
+    @app.get("/results-overlay.html", include_in_schema=False)
+    async def serve_results_overlay():
+        return FileResponse(os.path.join(root_dir, "results-overlay.html"))
+
+    @app.get("/results-checkerboard", include_in_schema=False)
+    @app.get("/results-checkerboard.html", include_in_schema=False)
+    async def serve_results_checkerboard():
+        return FileResponse(os.path.join(root_dir, "results-checkerboard.html"))
+
+    @app.get("/results-cmap-a", include_in_schema=False)
+    @app.get("/results-cmap-a.html", include_in_schema=False)
+    async def serve_results_cmap_a():
+        return FileResponse(os.path.join(root_dir, "results-cmap-a.html"))
+
+    @app.get("/results-cmap-b", include_in_schema=False)
+    @app.get("/results-cmap-b.html", include_in_schema=False)
+    async def serve_results_cmap_b():
+        return FileResponse(os.path.join(root_dir, "results-cmap-b.html"))
+
+    @app.get("/lunar_matching_frontend", include_in_schema=False)
+    @app.get("/lunar_matching", include_in_schema=False)
+    @app.get("/lunar_match", include_in_schema=False)
+    async def serve_lunar_matching_frontend():
+        return FileResponse(os.path.join(root_dir, "Lunar_matching_frontend.html"))
 
     def custom_openapi():
         if app.openapi_schema:

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Results | Codexa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+
+<body>
+
+    <div class="topnav">
+        <a class="brand" href="index.html">
+            <div class="moon-icon"><svg viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg></div>
+            <div>
+                <div class="brand-name">Codexa</div>
+                <div class="brand-sub">Lunar Match &amp; Register</div>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">About the model</a>
+            <a href="app.html">Match Engine</a>
+            <a href="results.html" class="current">Results</a>
+        </div>
+    </div>
+
+    <header class="appbar panel">
+        <div>
+            <h1>Match Result</h1>
+            <div class="subtitle" id="jobSubtitle">No job loaded yet</div>
+        </div>
+        <div class="header-right">
+            <div class="session-counter-badge" id="sessionCounterBadge">
+                <span style="font-weight:700;">TEST SESSION</span>
+                <span id="sessionCounterText">Pairs Tested: 0 | Accepted: 0 | Rejected: 0</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="mainContent">
+        <!-- Populated by JS, or replaced with an empty state -->
+    </main>
+
+    <script src="assets/common.js"></script>
+    <script>
+        CODEXA.renderSessionBadge("sessionCounterText");
+        const payload = CODEXA.loadResult();
+        const main = document.getElementById("mainContent");
+
+        if (!payload) {
+            document.getElementById("jobSubtitle").textContent = "No job loaded yet";
+            main.innerHTML = `
+        <section class="panel empty-state">
+          <h3>No match result to show yet</h3>
+          <p>Run a pair of images through the engine to see the acceptance decision and every diagnostic view.</p>
+          <div style="margin-top:1.5rem;">
+            <a href="app.html" class="btn-primary">Go to Match Engine</a>
+          </div>
+        </section>`;
+        } else {
+            document.getElementById("jobSubtitle").textContent = `Job ID: ${payload.jobId || "—"} · ${new Date(payload.timestamp).toLocaleString()}`;
+            renderResult(payload);
+        }
+
+        function renderResult(payload) {
+            const res = payload.result;
+            const hasAcceptance = res.acceptance != null;
+            const isAccepted = hasAcceptance ? res.acceptance.accepted : res.matched;
+
+            let bannerClass = "uncertain";
+            let bannerIcon = `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`;
+            let bannerTitle = "Match Uncertain / No Consensus";
+            let bannerSub = res.failure_reason || "Insufficient spatial inliers for registration";
+            let rejectionHtml = "";
+
+            if (res.matched === true) {
+                bannerClass = "success";
+                bannerIcon = `<polyline points="20 6 9 17 4 12"/>`;
+                bannerTitle = "LOCATION MATCH ACCEPTED";
+                bannerSub = "Acceptance criteria satisfied";
+            } else if (hasAcceptance && res.acceptance.status === "REJECTED") {
+                bannerClass = "rejected";
+                bannerIcon = `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`;
+                bannerTitle = "LOCATION MATCH REJECTED";
+                bannerSub = res.acceptance.reason || "Acceptance criteria not satisfied";
+                rejectionHtml = `
+          <div class="rejection-box">
+            <div class="rejection-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Why was this match rejected?
+            </div>
+            <div class="rejection-reason">${res.acceptance.reason || "Insufficient geometric evidence."}</div>
+            <div class="rejection-note">RANSAC found a geometrically consistent subset, but the evidence did not satisfy the location-match acceptance standard.</div>
+          </div>`;
+            }
+
+            const covVal = res.coverage != null ? res.coverage : (res.acceptance?.checks?.minimum_coverage?.value ?? null);
+            const scoreVal = res.acceptance?.acceptance_score != null ? (res.acceptance.acceptance_score * 100).toFixed(1)
+                : (res.confidence != null ? (res.confidence * 100).toFixed(1) : null);
+
+            const tf = res.transform;
+            const sanityPassed = res.acceptance?.checks?.transform_sanity?.passed;
+
+            main.innerHTML = `
+        <div class="action-bar">
+          <button class="btn-secondary" id="copyDiagBtn" onclick="copyDiagnostics()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span id="copyDiagText">Copy Diagnostics</span>
+          </button>
+          <a class="btn-secondary" href="app.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Test Another Pair
+          </a>
+        </div>
+
+        <div class="results-banner ${bannerClass}">
+          <div class="banner-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">${bannerIcon}</svg>
+            ${bannerTitle}
+          </div>
+          <div>${bannerSub}</div>
+        </div>
+
+        ${rejectionHtml}
+
+        <div class="metrics-grid">
+          <div class="card metric-card">
+            <div class="metric-label">Inlier Correspondences</div>
+            <div class="metric-value">${res.inliers ?? 0}</div>
+            <div class="metric-sub">Total Candidate Ties: ${res.correspondences ?? 0}</div>
+          </div>
+          <div class="card metric-card">
+            <div class="metric-label">Inlier Ratio</div>
+            <div class="metric-value">${res.inlier_ratio != null ? (res.inlier_ratio * 100).toFixed(1) + "%" : "N/A"}</div>
+            <div class="metric-sub">RANSAC Consensus</div>
+          </div>
+          <div class="card metric-card">
+            <div class="metric-label">Reprojection RMSE</div>
+            <div class="metric-value">${res.rmse != null ? res.rmse.toFixed(2) + " px" : "N/A"}</div>
+            <div class="metric-sub">${res.quality || "N/A"}</div>
+          </div>
+          <div class="card metric-card">
+            <div class="metric-label">Match Confidence</div>
+            <div class="metric-value">${res.confidence != null ? (res.confidence * 100).toFixed(1) + "%" : "N/A"}</div>
+            <div class="metric-sub">Pipeline Certainty</div>
+          </div>
+          <div class="card metric-card">
+            <div class="metric-label">Spatial Coverage</div>
+            <div class="metric-value">${covVal != null ? (covVal * 100).toFixed(1) + "%" : "N/A"}</div>
+            <div class="metric-sub">Inlier grid coverage</div>
+          </div>
+        </div>
+
+        <div class="panel acceptance-panel">
+          <div class="acceptance-header">
+            <div>
+              <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.3rem;">Match Acceptance Decision</div>
+              <div class="acceptance-decision-badge ${isAccepted ? "accepted" : "rejected"}">${isAccepted ? "ACCEPTED" : "REJECTED"}</div>
+            </div>
+            <div class="score-container">
+              <div style="font-size:.78rem;color:var(--text-muted);">Evidence Quality</div>
+              <div class="score-value">${scoreVal != null ? scoreVal + "%" : "N/A"}</div>
+              <div class="score-subtext">Acceptance Score (deterministic evidence score — not a probability)</div>
+            </div>
+          </div>
+          <div class="checks-section-title">
+            <span>Acceptance Checks</span>
+            <span style="font-size:.72rem;color:var(--text-faint);font-weight:normal;">Standard Thresholds: Inliers ≥10 | Ratio ≥20% | RMSE ≤3.0px | Coverage ≥15% | Conf ≥50%</span>
+          </div>
+          <div class="checks-grid" id="checksGrid"></div>
+        </div>
+
+        <div class="panel flow-box">
+          <div class="flow-title">How the Decision Works: Raw Geometry vs Location Match Acceptance</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-step-num">Stage 1</div>
+              <div class="flow-step-heading">RANSAC Consensus</div>
+              <div class="flow-step-desc">Determines whether a geometrically consistent planar transformation matrix can be estimated.</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="flow-step-num">Stage 2</div>
+              <div class="flow-step-heading">Match Acceptance Engine</div>
+              <div class="flow-step-desc">Evaluates amount, ratio, coverage, confidence, and transform sanity against hard evidence thresholds.</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="flow-step-num">Stage 3</div>
+              <div class="flow-step-heading">Location Match Decision</div>
+              <div class="flow-step-desc">Deterministic <b>ACCEPTED</b> or <b>REJECTED</b> decision for planetary registration.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel transform-box">
+          <div class="transform-title">Estimated Planar Similarity Transform (2D)</div>
+          <div class="transform-values">
+            <div>Scale Factor: <span>${tf?.scale != null ? tf.scale.toFixed(4) : "N/A"}</span></div>
+            <div>Rotation Angle: <span>${tf?.rotation_deg != null ? tf.rotation_deg.toFixed(2) + "°" : "N/A"}</span></div>
+            <div>Translation X: <span>${tf?.translation?.x != null ? tf.translation.x.toFixed(2) + " px" : "N/A"}</span></div>
+            <div>Translation Y: <span>${tf?.translation?.y != null ? tf.translation.y.toFixed(2) + " px" : "N/A"}</span></div>
+            <div>Transform Sanity: <span>${sanityPassed === true ? "VALID (finite, positive scale)" : (sanityPassed === false ? "INVALID" : "N/A")}</span></div>
+          </div>
+        </div>
+
+        <section>
+          <div class="section-heading" style="margin-bottom:.6rem;">Explainable Matching &amp; Registration Assets</div>
+          <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:1.3rem;max-width:64ch;">Each diagnostic view opens on its own page so you can inspect it full-size and step through the set.</p>
+          <div class="viz-hub-grid" id="vizHubGrid"></div>
+        </section>
+      `;
+
+            renderAcceptanceChecks(res.acceptance?.checks);
+            renderVizHub(payload);
+        }
+
+        function renderAcceptanceChecks(checks) {
+            const container = document.getElementById("checksGrid");
+            if (!checks || Object.keys(checks).length === 0) {
+                container.innerHTML = `<div style="grid-column:1/-1;color:var(--text-faint);font-size:.85rem;font-style:italic;">No individual acceptance check details returned for this run.</div>`;
+                return;
+            }
+            const nameMap = {
+                minimum_inliers: "Minimum Inliers", minimum_inlier_ratio: "Inlier Ratio", maximum_rmse: "Reprojection RMSE",
+                minimum_coverage: "Spatial Coverage", minimum_confidence: "Match Confidence", transform_sanity: "Transform Sanity"
+            };
+            let html = "";
+            for (const [key, chk] of Object.entries(checks)) {
+                if (!chk) continue;
+                const name = nameMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const passed = chk.passed === true;
+                let val = "", thresh = "";
+                if (key === "minimum_inliers") { val = `${chk.value ?? 0}`; thresh = `${chk.threshold ?? 10} min`; }
+                else if (key === "minimum_inlier_ratio") { val = chk.value != null ? (chk.value * 100).toFixed(1) + "%" : "0.0%"; thresh = chk.threshold != null ? (chk.threshold * 100).toFixed(1) + "% min" : "20.0% min"; }
+                else if (key === "maximum_rmse") { val = chk.value != null ? Number(chk.value).toFixed(2) + " px" : "N/A"; thresh = chk.threshold != null ? Number(chk.threshold).toFixed(2) + " px max" : "3.00 px max"; }
+                else if (key === "minimum_coverage") { val = chk.value != null ? (chk.value * 100).toFixed(1) + "%" : "0.0%"; thresh = chk.threshold != null ? (chk.threshold * 100).toFixed(1) + "% min" : "15.0% min"; }
+                else if (key === "minimum_confidence") { val = chk.value != null ? (chk.value * 100).toFixed(1) + "%" : "0.0%"; thresh = chk.threshold != null ? (chk.threshold * 100).toFixed(1) + "% min" : "50.0% min"; }
+                else if (key === "transform_sanity") { val = chk.value === true ? "Finite / positive scale" : "Invalid transform"; thresh = "Finite + scale > 0"; }
+                else { val = `${chk.value}`; thresh = chk.threshold != null ? `${chk.threshold}` : ""; }
+
+                html += `
+          <div class="check-card ${passed ? "pass" : "fail"}">
+            <div class="check-header">
+              <span class="check-name">${name}</span>
+              <span class="check-status-pill ${passed ? "pass" : "fail"}">${passed ? "PASS" : "FAIL"}</span>
+            </div>
+            <div class="check-val-row">${val} <span style="color:var(--text-faint);font-size:.72rem;">/ ${thresh}</span></div>
+            ${chk.reason ? `<div class="check-reason">${chk.reason}</div>` : ""}
+          </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function renderVizHub(payload) {
+            const grid = document.getElementById("vizHubGrid");
+            grid.innerHTML = CODEXA.VIZ_PAGES.map(p => {
+                const url = CODEXA.vizUrl(payload, p.key);
+                const available = !!url;
+                return `
+          <a class="card viz-hub-card ${available ? "" : "disabled"}" href="${available ? p.file : "#"}">
+            ${available
+                        ? `<img class="viz-hub-thumb" src="${url}" alt="${p.label}">`
+                        : `<div class="viz-hub-thumb placeholder">Not available for this run</div>`}
+            <div class="viz-hub-name">${p.label}</div>
+            <div class="viz-hub-desc">${p.short}</div>
+            ${available ? `<div class="viz-hub-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>` : ""}
+          </a>`;
+            }).join("");
+        }
+
+        async function copyDiagnostics() {
+            const btnText = document.getElementById("copyDiagText");
+            if (!payload) return;
+            const res = payload.result;
+            const diag = {
+                job_id: payload.jobId, matched: res.matched, acceptance: res.acceptance, inliers: res.inliers,
+                correspondences: res.correspondences, inlier_ratio: res.inlier_ratio, rmse: res.rmse,
+                coverage: res.coverage, confidence: res.confidence, quality: res.quality, transform: res.transform,
+                timestamp: payload.timestamp
+            };
+            try {
+                await navigator.clipboard.writeText(JSON.stringify(diag, null, 2));
+                btnText.textContent = "Copied!";
+                setTimeout(() => { btnText.textContent = "Copy Diagnostics"; }, 2000);
+            } catch (err) {
+                alert("Failed to copy to clipboard. See console.");
+                console.log("Diagnostics JSON:", diag);
+            }
+        }
+    </script>
+</body>
+
+</html>

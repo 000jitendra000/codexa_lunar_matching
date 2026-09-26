@@ -15,7 +15,10 @@ import logging
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any, Tuple
 import numpy as np
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 
 from src.crater_detection.types import CraterCandidate, CraterDetectionResult
 from src.crater_detection.postprocess import postprocess_craters
@@ -23,6 +26,14 @@ from src.crater_detection.postprocess import postprocess_craters
 logger = logging.getLogger(__name__)
 
 SUPPORTED_DETECTORS = ("mock", "hough", "yolo")
+
+
+def _ensure_cv2_available():
+    if cv2 is None:
+        raise ModuleNotFoundError(
+            "OpenCV (cv2) is not installed in the active Python environment. "
+            "Please run 'pip install opencv-python-headless' or launch Streamlit using 'python -m streamlit run Home.py'."
+        )
 
 
 def _ensure_grayscale_uint8(image: np.ndarray) -> np.ndarray:

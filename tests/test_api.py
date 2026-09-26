@@ -236,3 +236,27 @@ def test_openapi_schema_file_upload_format():
     assert properties["image_b"]["type"] == "string"
     assert properties["image_b"]["format"] == "binary"
 
+
+def test_html_routes(client):
+    """Verify HTML and asset routes serve 200 OK with expected content types."""
+    html_paths = [
+        "/", "/index", "/index.html",
+        "/app", "/app.html",
+        "/results", "/results.html", "/Results.html",
+        "/results-correspondence", "/results-correspondence.html",
+        "/results-overlay", "/results-overlay.html",
+        "/results-checkerboard", "/results-checkerboard.html",
+        "/results-cmap-a", "/results-cmap-a.html",
+        "/results-cmap-b", "/results-cmap-b.html",
+        "/lunar_matching_frontend", "/lunar_matching", "/lunar_match"
+    ]
+    for path in html_paths:
+        response = client.get(path)
+        assert response.status_code == 200, f"Failed for path {path}"
+        assert "text/html" in response.headers.get("content-type", "")
+
+    # Test static assets
+    assert client.get("/assets/style.css").status_code == 200
+    assert client.get("/assets/common.js").status_code == 200
+
+
